@@ -1,4 +1,4 @@
--- CAT HUB FINAL 2.5
+-- CAT HUB FINAL 2.6
 
 -- SERVICES
 local Players = game:GetService("Players")
@@ -204,7 +204,6 @@ local function applyESP(plr, state)
 	if not plr.Character then return end
 	local char = plr.Character
 	if state then
-		-- Nombre rojo
 		if not char:FindFirstChild("ESP_Name") then
 			local nameBill = Instance.new("BillboardGui", char)
 			nameBill.Name = "ESP_Name"
@@ -259,7 +258,6 @@ xrayBtn.MouseButton1Click:Connect(function()
 	if xrayOn then
 		for _, obj in ipairs(Workspace:GetDescendants()) do
 			if obj:IsA("BasePart") and obj.Position.Y > hrp.Position.Y - 5 then
-				-- Solo objetos arriba del suelo (no pisos)
 				xrayParts[obj] = obj.Transparency
 				obj.Transparency = 0.5
 			end
@@ -275,7 +273,7 @@ xrayBtn.MouseButton1Click:Connect(function()
 end)
 
 --------------------------------------------------
--- AUTO GRAB
+-- AUTO GRAB (MODIFICADO)
 --------------------------------------------------
 autoGrabOn = false
 grabBtn.MouseButton1Click:Connect(function()
@@ -289,12 +287,12 @@ RunService.RenderStepped:Connect(function()
 		for _, obj in ipairs(Workspace:GetDescendants()) do
 			if obj:IsA("BasePart") and (obj.Name:lower():find("robar") or obj.Name:lower():find("steal")) then
 				if (hrp.Position - obj.Position).Magnitude < 6 then
-					-- Simula interacción automática
-					for _, cd in ipairs(obj:GetChildren()) do
-						if cd:IsA("ClickDetector") then
-							cd:FireClick(player)
-						elseif cd:IsA("ProximityPrompt") then
-							cd:InputHoldBegin(player)
+					-- Interactúa automáticamente
+					for _, child in ipairs(obj:GetChildren()) do
+						if child:IsA("ClickDetector") then
+							child:FireClick(player)
+						elseif child:IsA("ProximityPrompt") then
+							child:InputHoldBegin(player)
 						end
 					end
 				end
@@ -351,4 +349,4 @@ teleKey.MouseButton1Click:Connect(function()
 end)
 
 --------------------------------------------------
-print("🐱 CAT HUB FINAL 2.5 — listo, draggable y funcional")
+print("🐱 CAT HUB FINAL 2.6 — Auto Grab real y todo funcional")
