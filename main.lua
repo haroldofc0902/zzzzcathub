@@ -1,4 +1,4 @@
---// HaroldCUPS - CAT HUB LOCAL SCRIPT FINAL
+--// HAROLDCUPS - LOCAL SCRIPT FINAL
 
 local Players = game:GetService("Players")
 local RunService = game:GetService("RunService")
@@ -61,7 +61,7 @@ Instance.new("UICorner", frame).CornerRadius = UDim.new(0,18)
 local title = Instance.new("TextLabel", frame)
 title.Size = UDim2.fromScale(1,0.12)
 title.BackgroundTransparency = 1
-title.Text = "CAT HUB"
+title.Text = "HAROLDCUPS"
 title.Font = Enum.Font.GothamBlack
 title.TextScaled = true
 title.TextColor3 = Color3.fromRGB(255,90,90)
@@ -102,14 +102,15 @@ local grabBtn = makeButton("AUTO GRAB : OFF",0.59)
 local closeBtn = makeButton("CLOSE",0.71)
 
 --------------------------------------------------
--- TELEGUIADO (VOLANDO)
+-- TELEGUIADO
 --------------------------------------------------
 local function doTeleport()
+	-- Vuelo rápido hacia spawn/checkpoint
 	local startPos = hrp.Position
 	local endPos = spawnCFrame.Position
 	local direction = (endPos - startPos).Unit
 	local distance = (endPos - startPos).Magnitude
-	local speed = 300
+	local speed = 300 -- unidades por segundo
 
 	local travelled = 0
 	while travelled < distance do
@@ -157,19 +158,25 @@ closeBtn.MouseButton1Click:Connect(function()
 end)
 
 --------------------------------------------------
--- ESP (INCLUYE TU USER)
+-- ESP (MEJORADO CON HITBOX)
 --------------------------------------------------
 local espObjs = {}
+local hitboxObjs = {}
+
 local function clearESP()
 	for _,v in pairs(espObjs) do if v then v:Destroy() end end
+	for _,v in pairs(hitboxObjs) do if v then v:Destroy() end end
 	table.clear(espObjs)
+	table.clear(hitboxObjs)
 end
 
-local function createESP(plr,color)
-	if not plr.Character or not plr.Character:FindFirstChild("Head") then return end
+local function createESP(plr,color, isLocal)
+	if not plr.Character or not plr.Character:FindFirstChild("HumanoidRootPart") then return end
+
+	-- Billboard para nombre
 	local bb = Instance.new("BillboardGui", gui)
 	bb.Adornee = plr.Character.Head
-	bb.Size = UDim2.new(0,260,0,45)
+	bb.Size = UDim2.new(0,150,0,30)
 	bb.AlwaysOnTop = true
 
 	local t = Instance.new("TextLabel", bb)
@@ -178,10 +185,24 @@ local function createESP(plr,color)
 	t.Text = plr.Name
 	t.Font = Enum.Font.GothamBlack
 	t.TextScaled = true
+	t.TextSize = isLocal and 18 or 28
 	t.TextColor3 = color
 	t.TextStrokeTransparency = 0
 
 	table.insert(espObjs, bb)
+
+	-- Crear hitbox grande
+	local hrp2 = plr.Character.HumanoidRootPart
+	local box = Instance.new("BoxHandleAdornment", gui)
+	box.Adornee = hrp2
+	box.AlwaysOnTop = true
+	box.ZIndex = 5
+	box.Size = hrp2.Size + Vector3.new(2,3,2)
+	box.Transparency = 0.5
+	box.Color = color
+	box.Visible = true
+
+	table.insert(hitboxObjs, box)
 end
 
 espBtn.MouseButton1Click:Connect(function()
@@ -189,11 +210,13 @@ espBtn.MouseButton1Click:Connect(function()
 	espOn = not espOn
 	espBtn.Text = espOn and "ESP : ON" or "ESP : OFF"
 	clearESP()
+
 	if espOn then
-		createESP(player, Color3.fromRGB(0,170,255))
+		-- tu personaje en azul
+		createESP(player, Color3.fromRGB(0,0,255), true)
 		for _,p in pairs(Players:GetPlayers()) do
 			if p ~= player then
-				createESP(p, Color3.fromRGB(255,0,0))
+				createESP(p, Color3.fromRGB(255,0,0), false)
 			end
 		end
 	end
@@ -206,6 +229,7 @@ xrayBtn.MouseButton1Click:Connect(function()
 	click()
 	xrayOn = not xrayOn
 	xrayBtn.Text = xrayOn and "X-RAY : ON" or "X-RAY : OFF"
+
 	for _,v in pairs(workspace:GetDescendants()) do
 		if v:IsA("BasePart") and not v:IsDescendantOf(char) then
 			if not v.Name:lower():find("floor") then
@@ -216,7 +240,7 @@ xrayBtn.MouseButton1Click:Connect(function()
 end)
 
 --------------------------------------------------
--- AUTO GRAB (TOQUE AUTOMÁTICO ROBAR / STEAL)
+-- AUTO GRAB (TOCAR ROBAR/STEAL DESDE CUALQUIER LUGAR)
 --------------------------------------------------
 grabBtn.MouseButton1Click:Connect(function()
 	click()
@@ -231,9 +255,9 @@ RunService.Heartbeat:Connect(function()
 				local t = string.lower(v.ActionText or "")
 				if t:find("robar") or t:find("steal") then
 					pcall(function()
-						v:InputHoldBegin() -- presiona automáticamente
-						task.wait(0.1)
-						v:InputHoldEnd()
+						-- Forzar que se active aunque no estés cerca
+						v.HoldDuration = 0
+						v:InputHoldBegin()
 					end)
 				end
 			end
@@ -252,12 +276,14 @@ title.InputBegan:Connect(function(i)
 		startPos = frame.Position
 	end
 end)
+
 UIS.InputChanged:Connect(function(i)
 	if dragging and (i.UserInputType == Enum.UserInputType.MouseMovement or i.UserInputType == Enum.UserInputType.Touch) then
 		local d = i.Position - dragStart
 		frame.Position = UDim2.new(startPos.X.Scale,startPos.X.Offset+d.X,startPos.Y.Scale,startPos.Y.Offset+d.Y)
 	end
 end)
+
 UIS.InputEnded:Connect(function() dragging = false end)
 
 --------------------------------------------------
@@ -290,12 +316,14 @@ icon.InputBegan:Connect(function(i)
 		dPos = icon.Position
 	end
 end)
+
 UIS.InputChanged:Connect(function(i)
 	if dI and (i.UserInputType == Enum.UserInputType.MouseMovement or i.UserInputType == Enum.UserInputType.Touch) then
 		local d = i.Position - dStart
 		icon.Position = UDim2.new(dPos.X.Scale,dPos.X.Offset+d.X,dPos.Y.Scale,dPos.Y.Offset+d.Y)
 	end
 end)
+
 UIS.InputEnded:Connect(function() dI = false end)
 
 --------------------------------------------------
@@ -327,12 +355,14 @@ teleFloat.InputBegan:Connect(function(i)
 		pT = teleFloat.Position
 	end
 end)
+
 UIS.InputChanged:Connect(function(i)
 	if dT and (i.UserInputType == Enum.UserInputType.MouseMovement or i.UserInputType == Enum.UserInputType.Touch) then
 		local d = i.Position - sT
 		teleFloat.Position = UDim2.new(pT.X.Scale,pT.X.Offset+d.X,pT.Y.Scale,pT.Y.Offset+d.Y)
 	end
 end)
+
 UIS.InputEnded:Connect(function() dT = false end)
 
-print("🐱 HaroldCUPS — Todo listo, Auto Grab automático y Teleguiado volando 🚀")
+print("🐱 HAROLDCUPS — Todo listo con Auto Grab mejorado y ESP con hitbox 🚀")
