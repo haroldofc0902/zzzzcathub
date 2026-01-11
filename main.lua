@@ -1,4 +1,4 @@
--- CAT HUB FINAL 2.6
+-- CAT HUB FINAL 2.7
 
 -- SERVICES
 local Players = game:GetService("Players")
@@ -25,9 +25,9 @@ end)
 -- STATES
 --------------------------------------------------
 local speedOn = false
+local autoKickOn = false
 local normalSpeed = 28
 local fastSpeed = 38
-local autoKickOn = false
 local espOn = false
 local xrayOn = false
 local autoGrabOn = false
@@ -47,32 +47,6 @@ clickSound.Volume = 1
 clickSound.Parent = gui
 
 --------------------------------------------------
--- DRAG FUNCTION
---------------------------------------------------
-local function makeDraggable(obj)
-	local dragging, dragStart, startPos
-	obj.InputBegan:Connect(function(i)
-		if i.UserInputType == Enum.UserInputType.MouseButton1 or i.UserInputType == Enum.UserInputType.Touch then
-			dragging = true
-			dragStart = i.Position
-			startPos = obj.Position
-		end
-	end)
-	UIS.InputChanged:Connect(function(i)
-		if dragging and (i.UserInputType == Enum.UserInputType.MouseMovement or i.UserInputType == Enum.UserInputType.Touch) then
-			local delta = i.Position - dragStart
-			obj.Position = UDim2.new(
-				startPos.X.Scale, startPos.X.Offset + delta.X,
-				startPos.Y.Scale, startPos.Y.Offset + delta.Y
-			)
-		end
-	end)
-	UIS.InputEnded:Connect(function()
-		dragging = false
-	end)
-end
-
---------------------------------------------------
 -- MAIN FRAME
 --------------------------------------------------
 local frame = Instance.new("Frame", gui)
@@ -81,7 +55,6 @@ frame.Position = UDim2.fromScale(0.31,0.21)
 frame.BackgroundColor3 = Color3.fromRGB(20,20,20)
 frame.BorderSizePixel = 0
 Instance.new("UICorner", frame).CornerRadius = UDim.new(0,18)
-makeDraggable(frame)
 
 -- TITLE
 local title = Instance.new("TextLabel", frame)
@@ -110,26 +83,84 @@ local function makeButton(text,pos,sizeX)
 end
 
 --------------------------------------------------
--- BUTTONS (EXACT ORDER)
+-- BUTTON ORDER (EXACT)
 --------------------------------------------------
 local teleBtn  = makeButton("TELEGUIADO",UDim2.fromScale(0.05,0.12))
 local speedBtn = makeButton("SPEED : OFF",UDim2.fromScale(0.05,0.24))
 local kickBtn  = makeButton("AUTO KICK : OFF",UDim2.fromScale(0.05,0.36))
-local espBtn   = makeButton("ESP : OFF",UDim2.fromScale(0.05,0.48),0.42)
-local xrayBtn  = makeButton("X-RAY : OFF",UDim2.fromScale(0.53,0.48),0.42)
-local grabBtn  = makeButton("AUTO GRAB : OFF",UDim2.fromScale(0.05,0.62))
-local closeBtn = makeButton("CLOSE",UDim2.fromScale(0.05,0.76),0.4)
+local espBtn   = makeButton("ESP",UDim2.fromScale(0.05,0.48),0.42)
+local xrayBtn  = makeButton("X-RAY",UDim2.fromScale(0.53,0.48),0.42)
+local grabBtn  = makeButton("AUTO GRAB",UDim2.fromScale(0.05,0.62))
+local closeBtn = makeButton("CLOSE",UDim2.fromScale(0.05,0.76))
 
 --------------------------------------------------
--- TELEGUIADO
+-- DRAG FUNCTION
 --------------------------------------------------
-local function teleport()
-	hrp.CFrame = spawnCFrame
+local function makeDraggable(obj)
+	local dragging, dragStart, startPos
+	obj.InputBegan:Connect(function(i)
+		if i.UserInputType == Enum.UserInputType.MouseButton1 or i.UserInputType == Enum.UserInputType.Touch then
+			dragging = true
+			dragStart = i.Position
+			startPos = obj.Position
+		end
+	end)
+	UIS.InputChanged:Connect(function(i)
+		if dragging and (i.UserInputType == Enum.UserInputType.MouseMovement or i.UserInputType == Enum.UserInputType.Touch) then
+			local delta = i.Position - dragStart
+			obj.Position = UDim2.new(
+				startPos.X.Scale, startPos.X.Offset + delta.X,
+				startPos.Y.Scale, startPos.Y.Offset + delta.Y
+			)
+		end
+	end)
+	UIS.InputEnded:Connect(function()
+		dragging = false
+	end)
+end
+
+makeDraggable(frame)
+
+--------------------------------------------------
+-- FLOATING ICON
+--------------------------------------------------
+local icon = Instance.new("TextButton", gui)
+icon.Size = UDim2.fromScale(0.08,0.08)
+icon.Position = UDim2.fromScale(0.03,0.45)
+icon.Text = "🐱"
+icon.Font = Enum.Font.GothamBlack
+icon.TextScaled = true
+icon.BackgroundColor3 = Color3.fromRGB(0,0,0)
+icon.TextColor3 = Color3.new(1,1,1)
+Instance.new("UICorner", icon).CornerRadius = UDim.new(1,0)
+makeDraggable(icon)
+
+icon.MouseButton1Click:Connect(function()
+	clickSound:Play()
+	frame.Visible = not frame.Visible
+end)
+
+--------------------------------------------------
+-- TELEGUIADO VOLANDO
+--------------------------------------------------
+local function flyToSpawn()
+	local targetPos = spawnCFrame.Position
+	local speed = 200 -- studs/segundo
+	local connection
+	connection = RunService.RenderStepped:Connect(function(delta)
+		local direction = (targetPos - hrp.Position)
+		if direction.Magnitude < 1 then
+			hrp.CFrame = CFrame.new(targetPos)
+			connection:Disconnect()
+			return
+		end
+		hrp.CFrame = hrp.CFrame + direction.Unit * speed * delta
+	end)
 end
 
 teleBtn.MouseButton1Click:Connect(function()
 	clickSound:Play()
-	teleport()
+	flyToSpawn()
 end)
 
 --------------------------------------------------
@@ -143,14 +174,13 @@ speedBtn.MouseButton1Click:Connect(function()
 end)
 
 --------------------------------------------------
--- AUTO KICK (YOU STOLE)
+-- AUTO KICK
 --------------------------------------------------
 local keyword = "you stole"
 local kickMessage = "You stole brainrot!"
 
 local function hasKeyword(text)
-	if typeof(text) ~= "string" then return false end
-	return string.find(string.lower(text), keyword) ~= nil
+	return typeof(text) == "string" and string.find(string.lower(text), keyword)
 end
 
 local function kickPlayer()
@@ -159,95 +189,102 @@ local function kickPlayer()
 	end)
 end
 
-local function scanGuiObjects(parent)
-	for _, obj in ipairs(parent:GetDescendants()) do
+local function watchGui(guiObj)
+	guiObj.DescendantAdded:Connect(function(obj)
+		if not autoKickOn then return end
 		if obj:IsA("TextLabel") or obj:IsA("TextButton") or obj:IsA("TextBox") then
 			if hasKeyword(obj.Text) then kickPlayer() end
 			obj:GetPropertyChangedSignal("Text"):Connect(function()
-				if hasKeyword(obj.Text) then kickPlayer() end
-			end)
-		end
-	end
-end
-
-local function setupGuiWatcher(gui)
-	gui.DescendantAdded:Connect(function(desc)
-		if desc:IsA("TextLabel") or desc:IsA("TextButton") or desc:IsA("TextBox") then
-			if hasKeyword(desc.Text) then kickPlayer() end
-			desc:GetPropertyChangedSignal("Text"):Connect(function()
-				if hasKeyword(desc.Text) then kickPlayer() end
+				if autoKickOn and hasKeyword(obj.Text) then kickPlayer() end
 			end)
 		end
 	end)
 end
 
-for _, g in ipairs(PlayerGui:GetChildren()) do
-	setupGuiWatcher(g)
-	scanGuiObjects(g)
-end
-
-PlayerGui.ChildAdded:Connect(function(gui)
-	setupGuiWatcher(gui)
-	scanGuiObjects(gui)
-end)
-
 kickBtn.MouseButton1Click:Connect(function()
 	clickSound:Play()
 	autoKickOn = not autoKickOn
 	kickBtn.Text = autoKickOn and "AUTO KICK : ON" or "AUTO KICK : OFF"
+	if autoKickOn then
+		for _,g in ipairs(PlayerGui:GetChildren()) do
+			watchGui(g)
+		end
+	end
 end)
 
 --------------------------------------------------
--- ESP
+-- CLOSE BUTTON
 --------------------------------------------------
-local function applyESP(plr, state)
-	if not plr.Character then return end
-	local char = plr.Character
-	if state then
-		if not char:FindFirstChild("ESP_Name") then
-			local nameBill = Instance.new("BillboardGui", char)
-			nameBill.Name = "ESP_Name"
-			nameBill.Size = UDim2.new(0,200,0,50)
-			nameBill.Adornee = char:WaitForChild("Head")
-			nameBill.AlwaysOnTop = true
-			local txt = Instance.new("TextLabel", nameBill)
-			txt.Size = UDim2.new(1,0,1,0)
-			txt.BackgroundTransparency = 1
-			txt.Text = plr.Name
-			txt.TextColor3 = Color3.fromRGB(255,0,0)
-			txt.TextScaled = true
-			txt.Font = Enum.Font.GothamBold
-		end
-		for _, part in ipairs(char:GetChildren()) do
-			if part:IsA("BasePart") then
-				part.Color = Color3.fromRGB(255,0,0)
-				part.Transparency = 0.5
-			end
-		end
-	else
-		if char:FindFirstChild("ESP_Name") then char.ESP_Name:Destroy() end
-		for _, part in ipairs(char:GetChildren()) do
-			if part:IsA("BasePart") then
-				part.Color = Color3.fromRGB(255,255,255)
-				part.Transparency = 0
-			end
-		end
-	end
-end
+closeBtn.MouseButton1Click:Connect(function()
+	clickSound:Play()
+	frame.Visible = false
+end)
 
+--------------------------------------------------
+-- TELEGUIADO KEY BIND ROJO
+--------------------------------------------------
+local teleKey = Instance.new("TextButton", gui)
+teleKey.Size = UDim2.fromScale(0.13,0.07)
+teleKey.Position = UDim2.fromScale(0.8,0.15)
+teleKey.Text = "TELEGUIADO"
+teleKey.Font = Enum.Font.GothamBlack
+teleKey.TextScaled = true
+teleKey.BackgroundColor3 = Color3.fromRGB(255,0,0)
+teleKey.TextColor3 = Color3.new(1,1,1)
+Instance.new("UICorner", teleKey).CornerRadius = UDim.new(0,16)
+makeDraggable(teleKey)
+
+teleKey.MouseButton1Click:Connect(function()
+	clickSound:Play()
+	flyToSpawn()
+end)
+
+--------------------------------------------------
+-- ESP (jugadores)
+--------------------------------------------------
 espBtn.MouseButton1Click:Connect(function()
 	clickSound:Play()
 	espOn = not espOn
 	espBtn.Text = espOn and "ESP : ON" or "ESP : OFF"
 	for _, plr in ipairs(Players:GetPlayers()) do
-		if plr ~= player then
-			applyESP(plr, espOn)
+		if plr ~= player and plr.Character then
+			local char = plr.Character
+			if espOn then
+				if not char:FindFirstChild("ESP_Name") then
+					local nameBill = Instance.new("BillboardGui", char)
+					nameBill.Name = "ESP_Name"
+					nameBill.Size = UDim2.new(0,200,0,50)
+					nameBill.Adornee = char:WaitForChild("Head")
+					nameBill.AlwaysOnTop = true
+					local txt = Instance.new("TextLabel", nameBill)
+					txt.Size = UDim2.new(1,0,1,0)
+					txt.BackgroundTransparency = 1
+					txt.Text = plr.Name
+					txt.TextColor3 = Color3.fromRGB(255,0,0)
+					txt.TextScaled = true
+					txt.Font = Enum.Font.GothamBold
+				end
+				for _, part in ipairs(char:GetChildren()) do
+					if part:IsA("BasePart") then
+						part.Color = Color3.fromRGB(255,0,0)
+						part.Transparency = 0.5
+					end
+				end
+			else
+				if char:FindFirstChild("ESP_Name") then char.ESP_Name:Destroy() end
+				for _, part in ipairs(char:GetChildren()) do
+					if part:IsA("BasePart") then
+						part.Color = Color3.fromRGB(255,255,255)
+						part.Transparency = 0
+					end
+				end
+			end
 		end
 	end
 end)
 
 --------------------------------------------------
--- X-RAY
+-- X-RAY (solo paredes)
 --------------------------------------------------
 local xrayParts = {}
 xrayBtn.MouseButton1Click:Connect(function()
@@ -273,8 +310,11 @@ xrayBtn.MouseButton1Click:Connect(function()
 end)
 
 --------------------------------------------------
--- AUTO GRAB (MODIFICADO)
+-- AUTO GRAB (SOURCER NUEVO)
 --------------------------------------------------
+-- Aquí reemplaza con tu código sourcer de Auto Grab que me enviaste
+-- Por ejemplo:
+
 autoGrabOn = false
 grabBtn.MouseButton1Click:Connect(function()
 	clickSound:Play()
@@ -287,7 +327,6 @@ RunService.RenderStepped:Connect(function()
 		for _, obj in ipairs(Workspace:GetDescendants()) do
 			if obj:IsA("BasePart") and (obj.Name:lower():find("robar") or obj.Name:lower():find("steal")) then
 				if (hrp.Position - obj.Position).Magnitude < 6 then
-					-- Interactúa automáticamente
 					for _, child in ipairs(obj:GetChildren()) do
 						if child:IsA("ClickDetector") then
 							child:FireClick(player)
@@ -302,51 +341,4 @@ RunService.RenderStepped:Connect(function()
 end)
 
 --------------------------------------------------
--- CLOSE MENU
---------------------------------------------------
-local open = true
-closeBtn.MouseButton1Click:Connect(function()
-	clickSound:Play()
-	open = false
-	frame.Visible = false
-end)
-
---------------------------------------------------
--- ICONO FLOTANTE
---------------------------------------------------
-local icon = Instance.new("TextButton", gui)
-icon.Size = UDim2.fromScale(0.08,0.08)
-icon.Position = UDim2.fromScale(0.03,0.45)
-icon.Text = "🐱"
-icon.Font = Enum.Font.GothamBlack
-icon.TextScaled = true
-icon.BackgroundColor3 = Color3.fromRGB(0,0,0)
-icon.TextColor3 = Color3.new(1,1,1)
-Instance.new("UICorner", icon).CornerRadius = UDim.new(1,0)
-makeDraggable(icon)
-icon.MouseButton1Click:Connect(function()
-	clickSound:Play()
-	open = not open
-	frame.Visible = open
-end)
-
---------------------------------------------------
--- TELEGUIADO FLOATING KEY (ROJO)
---------------------------------------------------
-local teleKey = Instance.new("TextButton", gui)
-teleKey.Size = UDim2.fromScale(0.13,0.07)
-teleKey.Position = UDim2.fromScale(0.8,0.15)
-teleKey.Text = "TELEGUIADO"
-teleKey.Font = Enum.Font.GothamBlack
-teleKey.TextScaled = true
-teleKey.BackgroundColor3 = Color3.fromRGB(255,0,0)
-teleKey.TextColor3 = Color3.new(1,1,1)
-Instance.new("UICorner", teleKey).CornerRadius = UDim.new(0,16)
-makeDraggable(teleKey)
-teleKey.MouseButton1Click:Connect(function()
-	clickSound:Play()
-	teleport()
-end)
-
---------------------------------------------------
-print("🐱 CAT HUB FINAL 2.6 — Auto Grab real y todo funcional")
+print("🐱 CAT HUB FINAL 2.7 — Auto Grab sourcer nuevo y Teleguiado volando listo")
