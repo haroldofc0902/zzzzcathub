@@ -1,6 +1,6 @@
---// HAROLDCUPS FINAL
+--// HAROLDCUPS HUB - FINAL
 
--- SERVICIOS
+-- SERVICES
 local Players = game:GetService("Players")
 local RunService = game:GetService("RunService")
 local UIS = game:GetService("UserInputService")
@@ -18,143 +18,164 @@ player.CharacterAdded:Connect(function(c)
 	spawnCFrame = hrp.CFrame
 end)
 
+--------------------------------------------------
 -- ESTADOS
+--------------------------------------------------
 local speedOn = false
 local autoKick = false
 local espOn = false
 local xrayOn = false
 local grabOn = false
-local teleKOn = false
+local teleKActive = false
 
-local defaultSpeed = 28
-local speedValue = 36 -- velocidad inicial al activar SPEED
+local normalSpeed = 28
+local fastSpeed = 36
+local currentSpeed = normalSpeed
 
--- GUI
+--------------------------------------------------
+-- GUI PRINCIPAL
+--------------------------------------------------
 local gui = Instance.new("ScreenGui", player.PlayerGui)
 gui.ResetOnSpawn = false
 
--- SONIDO CLICK
 local clickSound = Instance.new("Sound", gui)
 clickSound.SoundId = "rbxassetid://12221967"
 clickSound.Volume = 1
 local function click() clickSound:Play() end
 
--- FRAME PRINCIPAL
+--------------------------------------------------
+-- MENU TELEGUIADO
+--------------------------------------------------
 local frame = Instance.new("Frame", gui)
-frame.Size = UDim2.fromScale(0.45,0.68)
-frame.Position = UDim2.fromScale(0.25,0.15)
+frame.Size = UDim2.fromScale(0.4,0.62)
+frame.Position = UDim2.fromScale(0.3,0.18)
 frame.BackgroundColor3 = Color3.fromRGB(25,25,25)
 frame.BorderSizePixel = 0
 frame.Active = true
 Instance.new("UICorner", frame).CornerRadius = UDim.new(0,18)
 
--- TITULO
 local title = Instance.new("TextLabel", frame)
 title.Size = UDim2.fromScale(1,0.12)
 title.BackgroundTransparency = 1
-title.Text = "HAROLD CUPS"
+title.Text = "HAROLDCUPS"
 title.Font = Enum.Font.GothamBlack
 title.TextScaled = true
 title.TextColor3 = Color3.fromRGB(255,90,90)
 title.Active = true
 
--- CREAR BOTONES
 local function makeButton(text,posY,width)
-	local b = Instance.new("TextButton",frame)
-	b.Size = UDim2.fromScale(width or 0.9,0.12)
+	local b = Instance.new("TextButton", frame)
+	b.Size = UDim2.fromScale(width or 0.9,0.1)
 	b.Position = UDim2.fromScale(0.05,posY)
 	b.Text = text
 	b.Font = Enum.Font.GothamBold
 	b.TextScaled = true
-	b.TextSize = 32
+	b.TextSize = 28
 	b.TextColor3 = Color3.new(1,1,1)
 	b.BackgroundColor3 = Color3.fromRGB(40,40,40)
 	b.BorderSizePixel = 0
-	Instance.new("UICorner",b).CornerRadius = UDim.new(0,14)
+	Instance.new("UICorner", b).CornerRadius = UDim.new(0,14)
 	return b
 end
 
--- BOTONES PRINCIPALES ORDENADOS
-local teleBtn  = makeButton("TELEGUIADO",0.12)
+-- BOTONES PRINCIPALES
+local teleBtn  = makeButton("TELEGUIADO",0.14)
 local speedBtn = makeButton("SPEED : OFF",0.25)
-local kickBtn  = makeButton("AUTO KICK : OFF",0.38)
-local espBtn   = makeButton("ESP : OFF",0.51,0.43)
-espBtn.Position = UDim2.fromScale(0.05,0.51)
-local xrayBtn  = makeButton("X-RAY : OFF",0.51,0.43)
-xrayBtn.Position = UDim2.fromScale(0.52,0.51)
-local keybindBtn = makeButton("KEYBIND-T",0.64)
-local closeBtn = makeButton("CLOSE",0.77)
+local kickBtn  = makeButton("AUTO KICK : OFF",0.36)
+local espBtn   = makeButton("ESP : OFF",0.47,0.43)
+local xrayBtn  = makeButton("X-RAY : OFF",0.47,0.43)
+espBtn.Position = UDim2.fromScale(0.05,0.47)
+xrayBtn.Position = UDim2.fromScale(0.52,0.47)
+local grabBtn  = makeButton("AUTO GRAB : OFF",0.59)
+local teleKBtn = makeButton("KEYBIND-T",0.7)
+local closeBtn = makeButton("CLOSE",0.82)
 
--- TELEGUIADO VOLANDO
-local function doTeleport(targetCFrame)
+--------------------------------------------------
+-- DRAG MENU PRINCIPAL
+--------------------------------------------------
+local dragging, dragStart, startPos
+title.InputBegan:Connect(function(i)
+	if i.UserInputType == Enum.UserInputType.MouseButton1 or i.UserInputType == Enum.UserInputType.Touch then
+		dragging = true
+		dragStart = i.Position
+		startPos = frame.Position
+	end
+end)
+
+UIS.InputChanged:Connect(function(i)
+	if dragging and (i.UserInputType == Enum.UserInputType.MouseMovement or i.UserInputType == Enum.UserInputType.Touch) then
+		local d = i.Position - dragStart
+		frame.Position = UDim2.new(startPos.X.Scale,startPos.X.Offset+d.X,startPos.Y.Scale,startPos.Y.Offset+d.Y)
+	end
+end)
+
+UIS.InputEnded:Connect(function() dragging = false end)
+
+--------------------------------------------------
+-- TELEGUIADO
+--------------------------------------------------
+local function doTeleport()
 	local startPos = hrp.Position
-	local endPos = targetCFrame.Position
+	local endPos = spawnCFrame.Position
 	local direction = (endPos - startPos).Unit
 	local distance = (endPos - startPos).Magnitude
-	local speed = 300 -- ultra rápido
+	local speed = 300
 
 	local travelled = 0
 	while travelled < distance do
 		RunService.Heartbeat:Wait()
 		local step = speed * RunService.Heartbeat:Wait()
 		travelled = travelled + step
-		local newPos = startPos + direction * math.min(travelled,distance)
+		local newPos = startPos + direction * math.min(travelled, distance)
 		hrp.CFrame = CFrame.new(newPos,endPos)
 	end
-	hrp.CFrame = targetCFrame
+	hrp.CFrame = spawnCFrame
 end
 
 teleBtn.MouseButton1Click:Connect(function()
 	click()
-	doTeleport(spawnCFrame)
+	doTeleport()
 end)
 
+--------------------------------------------------
 -- SPEED
+--------------------------------------------------
 speedBtn.MouseButton1Click:Connect(function()
 	click()
 	speedOn = not speedOn
-	humanoid.WalkSpeed = speedOn and speedValue or defaultSpeed
+	humanoid.WalkSpeed = speedOn and fastSpeed or normalSpeed
+	currentSpeed = humanoid.WalkSpeed
 	speedBtn.Text = speedOn and "SPEED : ON" or "SPEED : OFF"
 end)
 
+--------------------------------------------------
 -- AUTO KICK
+--------------------------------------------------
 kickBtn.MouseButton1Click:Connect(function()
 	click()
 	autoKick = not autoKick
 	kickBtn.Text = autoKick and "AUTO KICK : ON" or "AUTO KICK : OFF"
 end)
 
--- CERRAR MENU
-local open = true
-closeBtn.MouseButton1Click:Connect(function()
-	click()
-	open=false
-	frame.Visible=false
-end)
-
--- ESP
+--------------------------------------------------
+-- ESP / X-RAY / AUTO GRAB
+--------------------------------------------------
 local espObjs = {}
 local function clearESP()
 	for _,v in pairs(espObjs) do if v then v:Destroy() end end
 	table.clear(espObjs)
 end
+
 local function createESP(plr,color)
-	if not plr.Character or not plr.Character:FindFirstChild("Head") then return end
-	local bb = Instance.new("BillboardGui",gui)
-	bb.Adornee = plr.Character.Head
-	bb.Size = UDim2.new(0,260,0,45)
-	bb.AlwaysOnTop=true
-
-	local t = Instance.new("TextLabel",bb)
-	t.Size = UDim2.new(1,0,1,0)
-	t.BackgroundTransparency=1
-	t.Text=plr.Name
-	t.Font=Enum.Font.GothamBlack
-	t.TextScaled=true
-	t.TextColor3=color
-	t.TextStrokeTransparency=0
-
-	table.insert(espObjs,bb)
+	if not plr.Character or not plr.Character:FindFirstChild("HumanoidRootPart") then return end
+	local box = Instance.new("BoxHandleAdornment",workspace)
+	box.Adornee = plr.Character:FindFirstChild("HumanoidRootPart")
+	box.Size = Vector3.new(4,6,2)
+	box.Transparency = 0.5
+	box.Color = color
+	box.AlwaysOnTop = true
+	box.ZIndex = 10
+	table.insert(espObjs, box)
 end
 
 espBtn.MouseButton1Click:Connect(function()
@@ -163,7 +184,7 @@ espBtn.MouseButton1Click:Connect(function()
 	espBtn.Text = espOn and "ESP : ON" or "ESP : OFF"
 	clearESP()
 	if espOn then
-		createESP(player,Color3.fromRGB(0,170,255))
+		createESP(player,Color3.fromRGB(0,0,255))
 		for _,p in pairs(Players:GetPlayers()) do
 			if p ~= player then
 				createESP(p,Color3.fromRGB(255,0,0))
@@ -172,7 +193,6 @@ espBtn.MouseButton1Click:Connect(function()
 	end
 end)
 
--- X-RAY
 xrayBtn.MouseButton1Click:Connect(function()
 	click()
 	xrayOn = not xrayOn
@@ -186,151 +206,101 @@ xrayBtn.MouseButton1Click:Connect(function()
 	end
 end)
 
--- DRAG MENU PRINCIPAL
-local dragging,dragStart,startPos
-title.InputBegan:Connect(function(i)
-	if i.UserInputType==Enum.UserInputType.MouseButton1 or i.UserInputType==Enum.UserInputType.Touch then
-		dragging=true
-		dragStart=i.Position
-		startPos=frame.Position
-	end
+grabBtn.MouseButton1Click:Connect(function()
+	click()
+	grabOn = not grabOn
+	grabBtn.Text = grabOn and "AUTO GRAB : ON" or "AUTO GRAB : OFF"
 end)
-UIS.InputChanged:Connect(function(i)
-	if dragging and (i.UserInputType==Enum.UserInputType.MouseMovement or i.UserInputType==Enum.UserInputType.Touch) then
-		local d=i.Position-dragStart
-		frame.Position=UDim2.new(startPos.X.Scale,startPos.X.Offset+d.X,startPos.Y.Scale,startPos.Y.Offset+d.Y)
-	end
-end)
-UIS.InputEnded:Connect(function() dragging=false end)
 
--- ICONO CIRCULAR MOVIBLE
-local icon = Instance.new("TextButton",gui)
-icon.Size = UDim2.fromScale(0.12,0.12)
+RunService.Heartbeat:Connect(function()
+	if grabOn then
+		for _,v in pairs(workspace:GetDescendants()) do
+			if v:IsA("ProximityPrompt") then
+				local t = string.lower(v.ActionText or "")
+				if t:find("robar") or t:find("steal") then
+					pcall(function()
+						v.HoldDuration = 0
+						v:InputHoldBegin()
+					end)
+				end
+			end
+		end
+	end
+end)
+
+--------------------------------------------------
+-- CLOSE MENU
+--------------------------------------------------
+local open = true
+closeBtn.MouseButton1Click:Connect(function()
+	click()
+	open = false
+	frame.Visible = false
+end)
+
+--------------------------------------------------
+-- ICONO PEQUEÑO MOVIBLE
+--------------------------------------------------
+local icon = Instance.new("TextButton", gui)
+icon.Size = UDim2.fromScale(0.08,0.08)
 icon.Position = UDim2.fromScale(0.03,0.45)
-icon.Text = "O"
+icon.Text = "🐱"
 icon.Font = Enum.Font.GothamBlack
-icon.TextScaled=true
-icon.TextColor3=Color3.new(1,1,1)
-icon.BackgroundColor3=Color3.new(0,0,0)
-icon.BorderSizePixel=0
-icon.Active=true
-Instance.new("UICorner",icon).CornerRadius=UDim.new(1,0)
+icon.TextScaled = true
+icon.BackgroundColor3 = Color3.fromRGB(0,0,0)
+icon.TextColor3 = Color3.new(1,1,1)
+icon.BorderSizePixel = 0
+Instance.new("UICorner", icon).CornerRadius = UDim.new(1,0)
+icon.Active = true
 
--- MENU ICONO MOVIBLE
-local iconMenu = Instance.new("Frame",gui)
-iconMenu.Size=UDim2.fromScale(0.45,0.5)
-iconMenu.Position=UDim2.fromScale(0.05,0.55)
-iconMenu.BackgroundColor3=Color3.fromRGB(30,30,30)
-iconMenu.Visible=false
-Instance.new("UICorner",iconMenu).CornerRadius=UDim.new(0,18)
+local draggingIcon, startIconPos, startIconPos2
+icon.InputBegan:Connect(function(i)
+	if i.UserInputType == Enum.UserInputType.MouseButton1 or i.UserInputType == Enum.UserInputType.Touch then
+		draggingIcon = true
+		startIconPos = i.Position
+		startIconPos2 = icon.Position
+	end
+end)
 
--- HIDE MENU
-local hideBtn = Instance.new("TextButton",iconMenu)
-hideBtn.Size=UDim2.fromScale(0.9,0.2)
-hideBtn.Position=UDim2.fromScale(0.05,0.05)
-hideBtn.Text="HIDE MENU"
-hideBtn.Font=Enum.Font.GothamBold
-hideBtn.TextScaled=true
-hideBtn.TextColor3=Color3.new(1,1,1)
-hideBtn.BackgroundColor3=Color3.fromRGB(50,50,50)
-Instance.new("UICorner",hideBtn).CornerRadius=UDim.new(0,12)
-hideBtn.MouseButton1Click:Connect(function()
+UIS.InputChanged:Connect(function(i)
+	if draggingIcon and (i.UserInputType == Enum.UserInputType.MouseMovement or i.UserInputType == Enum.UserInputType.Touch) then
+		local d = i.Position - startIconPos
+		icon.Position = UDim2.new(startIconPos2.X.Scale,startIconPos2.X.Offset+d.X,startIconPos2.Y.Scale,startIconPos2.Y.Offset+d.Y)
+	end
+end)
+UIS.InputEnded:Connect(function() draggingIcon = false end)
+
+-- ABRIR MENU DESDE ICONO
+icon.MouseButton1Click:Connect(function()
 	click()
 	open = not open
 	frame.Visible = open
 end)
 
--- VELOCIDAD ICONO
-local speedLabel = Instance.new("TextLabel",iconMenu)
-speedLabel.Size=UDim2.fromScale(0.9,0.2)
-speedLabel.Position=UDim2.fromScale(0.05,0.3)
-speedLabel.Text=tostring(speedValue)
-speedLabel.TextScaled=true
-speedLabel.TextColor3=Color3.new(1,1,1)
-speedLabel.BackgroundTransparency=1
-speedLabel.Font=Enum.Font.GothamBold
-speedLabel.TextStrokeTransparency=0
+--------------------------------------------------
+-- TELE K
+--------------------------------------------------
+local teleKFloat = Instance.new("TextButton", gui)
+teleKFloat.Size = UDim2.fromScale(0.08,0.08)
+teleKFloat.Position = UDim2.fromScale(0.92,0.05)
+teleKFloat.Text = "TELE-K"
+teleKFloat.Font = Enum.Font.GothamBold
+teleKFloat.TextScaled = true
+teleKFloat.TextColor3 = Color3.new(1,1,1)
+teleKFloat.BackgroundColor3 = Color3.fromRGB(255,0,0)
+teleKFloat.BorderSizePixel = 0
+Instance.new("UICorner", teleKFloat).CornerRadius = UDim.new(0,10)
+teleKFloat.Visible = false
 
--- BOTONES + Y -
-local plusBtn = Instance.new("TextButton",iconMenu)
-plusBtn.Size=UDim2.fromScale(0.4,0.2)
-plusBtn.Position=UDim2.fromScale(0.05,0.6)
-plusBtn.Text="+"
-plusBtn.Font=Enum.Font.GothamBold
-plusBtn.TextScaled=true
-plusBtn.TextColor3=Color3.new(1,1,1)
-plusBtn.BackgroundColor3=Color3.fromRGB(50,50,50)
-Instance.new("UICorner",plusBtn).CornerRadius=UDim.new(0,12)
-
-local minusBtn = Instance.new("TextButton",iconMenu)
-minusBtn.Size=UDim2.fromScale(0.4,0.2)
-minusBtn.Position=UDim2.fromScale(0.55,0.6)
-minusBtn.Text="-"
-minusBtn.Font=Enum.Font.GothamBold
-minusBtn.TextScaled=true
-minusBtn.TextColor3=Color3.new(1,1,1)
-minusBtn.BackgroundColor3=Color3.fromRGB(50,50,50)
-Instance.new("UICorner",minusBtn).CornerRadius=UDim.new(0,12)
-
--- FUNCIONES + Y -
-plusBtn.MouseButton1Click:Connect(function()
-	speedValue = speedValue + 1
-	speedLabel.Text = tostring(speedValue)
-	if speedOn then humanoid.WalkSpeed = speedValue end
+teleKBtn.MouseButton1Click:Connect(function()
 	click()
+	teleKActive = not teleKActive
+	teleKFloat.Visible = teleKActive
 end)
-minusBtn.MouseButton1Click:Connect(function()
-	speedValue = speedValue - 1
-	speedLabel.Text = tostring(speedValue)
-	if speedOn then humanoid.WalkSpeed = speedValue end
+
+teleKFloat.MouseButton1Click:Connect(function()
 	click()
+	doTeleport()
 end)
 
--- MOSTRAR MENU ICONO
-icon.MouseButton1Click:Connect(function()
-	click()
-	iconMenu.Visible = not iconMenu.Visible
-end)
-
--- DRAG ICONO MENU
-local dI,dStart,dPos
-iconMenu.InputBegan:Connect(function(i)
-	if i.UserInputType==Enum.UserInputType.MouseButton1 or i.UserInputType==Enum.UserInputType.Touch then
-		dI=true
-		dStart=i.Position
-		dPos=iconMenu.Position
-	end
-end)
-UIS.InputChanged:Connect(function(i)
-	if dI and (i.UserInputType==Enum.UserInputType.MouseMovement or i.UserInputType==Enum.UserInputType.Touch) then
-		local d=i.Position-dStart
-		iconMenu.Position=UDim2.new(dPos.X.Scale,dPos.X.Offset+d.X,dPos.Y.Scale,dPos.Y.Offset+d.Y)
-	end
-end)
-UIS.InputEnded:Connect(function() dI=false end)
-
--- TELE-K CUADRADO ROJO FIJO ACTIVADO CON KEYBIND-T
-local teleKBtnFloating = Instance.new("TextButton",gui)
-teleKBtnFloating.Size=UDim2.fromScale(0.07,0.07)
-teleKBtnFloating.Position=UDim2.fromScale(0.88,0.02)
-teleKBtnFloating.Text="TELE-K"
-teleKBtnFloating.Font=Enum.Font.GothamBold
-teleKBtnFloating.TextScaled=true
-teleKBtnFloating.BackgroundColor3=Color3.fromRGB(255,50,50)
-teleKBtnFloating.TextColor3=Color3.new(1,1,1)
-teleKBtnFloating.BorderSizePixel=0
-Instance.new("UICorner",teleKBtnFloating).CornerRadius=UDim.new(0,6)
-teleKBtnFloating.Visible=false
-
-keybindBtn.MouseButton1Click:Connect(function()
-	click()
-	teleKOn = not teleKOn
-	teleKBtnFloating.Visible = teleKOn
-end)
-
-teleKBtnFloating.MouseButton1Click:Connect(function()
-	click()
-	doTeleport(spawnCFrame)
-end)
-
-print("✅ HAROLDCUPS — Menu final cuadrado, icono movible, TELE-K activable con KEYBIND-T, SPEED sincronizado con icono, todo alineado y grande.")
+print("🐱 HAROLDCUPS HUB — Todo listo ✅, icono movible, TELEG-K volando ultra rápido 🚀")
