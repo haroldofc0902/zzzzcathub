@@ -43,19 +43,17 @@ clickSound.Volume = 1
 local function click() clickSound:Play() end
 
 --------------------------------------------------
--- FRAME PRINCIPAL (ESTILO |                    |)
+-- FRAME PRINCIPAL
 --------------------------------------------------
 local frame = Instance.new("Frame", gui)
-frame.Size = UDim2.fromScale(0.25,0.6) -- más ancho
-frame.Position = UDim2.fromScale(0.375,0.2) -- centrado
+frame.Size = UDim2.fromScale(0.3,0.6) -- más ancho
+frame.Position = UDim2.fromScale(0.35,0.2) -- centrado
 frame.BackgroundColor3 = Color3.fromRGB(25,25,25)
 frame.BorderSizePixel = 0
 frame.Active = true
 Instance.new("UICorner", frame).CornerRadius = UDim.new(0,16)
 
---------------------------------------------------
 -- TITULO
---------------------------------------------------
 local title = Instance.new("TextLabel", frame)
 title.Size = UDim2.fromScale(1,0.12)
 title.Position = UDim2.fromScale(0,0)
@@ -66,9 +64,7 @@ title.TextScaled = true
 title.TextColor3 = Color3.fromRGB(255,90,90)
 title.Active = true
 
---------------------------------------------------
 -- FUNCION CREAR BOTONES
---------------------------------------------------
 local function makeButton(text,posY)
 	local b = Instance.new("TextButton", frame)
 	b.Size = UDim2.fromScale(0.9,0.09)
@@ -84,9 +80,7 @@ local function makeButton(text,posY)
 	return b
 end
 
---------------------------------------------------
--- BOTONES PRINCIPALES (SEPARADOS)
---------------------------------------------------
+-- BOTONES PRINCIPALES
 local teleBtn  = makeButton("TELEGUIADO",0.12)
 local speedBtn = makeButton("SPEED : OFF",0.25)
 local kickBtn  = makeButton("AUTO KICK : OFF",0.38)
@@ -125,9 +119,7 @@ teleBtn.MouseButton1Click:Connect(function()
 	doTeleport()
 end)
 
---------------------------------------------------
--- SPEED FUNCION
---------------------------------------------------
+-- SPEED
 speedBtn.MouseButton1Click:Connect(function()
 	click()
 	speedOn = not speedOn
@@ -136,18 +128,14 @@ speedBtn.MouseButton1Click:Connect(function()
 	speedBtn.Text = speedOn and "SPEED : ON" or "SPEED : OFF"
 end)
 
---------------------------------------------------
--- AUTO KICK FUNCION
---------------------------------------------------
+-- AUTO KICK
 kickBtn.MouseButton1Click:Connect(function()
 	click()
 	autoKick = not autoKick
 	kickBtn.Text = autoKick and "AUTO KICK : ON" or "AUTO KICK : OFF"
 end)
 
---------------------------------------------------
 -- CERRAR MENU
---------------------------------------------------
 local open = true
 closeBtn.MouseButton1Click:Connect(function()
 	click()
@@ -155,9 +143,7 @@ closeBtn.MouseButton1Click:Connect(function()
 	frame.Visible = false
 end)
 
---------------------------------------------------
--- ESP FUNCION
---------------------------------------------------
+-- ESP
 local espObjs = {}
 local function clearESP()
 	for _,v in pairs(espObjs) do if v then v:Destroy() end end
@@ -198,9 +184,7 @@ espBtn.MouseButton1Click:Connect(function()
 	end
 end)
 
---------------------------------------------------
--- X-RAY FUNCION
---------------------------------------------------
+-- X-RAY
 xrayBtn.MouseButton1Click:Connect(function()
 	click()
 	xrayOn = not xrayOn
@@ -215,9 +199,7 @@ xrayBtn.MouseButton1Click:Connect(function()
 	end
 end)
 
---------------------------------------------------
--- AUTO GRAB FUNCION
---------------------------------------------------
+-- AUTO GRAB
 grabBtn.MouseButton1Click:Connect(function()
 	click()
 	grabOn = not grabOn
@@ -240,9 +222,7 @@ RunService.Heartbeat:Connect(function()
 	end
 end)
 
---------------------------------------------------
 -- DRAG MENU PRINCIPAL
---------------------------------------------------
 local dragging, dragStart, startPos
 title.InputBegan:Connect(function(i)
 	if i.UserInputType == Enum.UserInputType.MouseButton1 or i.UserInputType == Enum.UserInputType.Touch then
@@ -251,14 +231,12 @@ title.InputBegan:Connect(function(i)
 		startPos = frame.Position
 	end
 end)
-
 UIS.InputChanged:Connect(function(i)
 	if dragging and (i.UserInputType == Enum.UserInputType.MouseMovement or i.UserInputType == Enum.UserInputType.Touch) then
 		local d = i.Position - dragStart
 		frame.Position = UDim2.new(startPos.X.Scale,startPos.X.Offset+d.X,startPos.Y.Scale,startPos.Y.Offset+d.Y)
 	end
 end)
-
 UIS.InputEnded:Connect(function() dragging = false end)
 
 --------------------------------------------------
@@ -267,16 +245,14 @@ UIS.InputEnded:Connect(function() dragging = false end)
 local icon = Instance.new("TextButton", gui)
 icon.Size = UDim2.fromScale(0.08,0.08)
 icon.Position = UDim2.fromScale(0.03,0.45)
-icon.Text = "O"
-icon.Font = Enum.Font.GothamBlack
-icon.TextScaled = true
-icon.TextColor3 = Color3.new(1,1,1)
+icon.Text = ""
 icon.BackgroundColor3 = Color3.fromRGB(0,0,0)
 icon.BorderSizePixel = 0
-Instance.new("UICorner", icon).CornerRadius = UDim.new(1,0) -- totalmente redondo
+Instance.new("UICorner", icon).CornerRadius = UDim.new(1,0)
 
+-- MENU DEL ICONO
 local iconMenu = Instance.new("Frame", gui)
-iconMenu.Size = UDim2.fromScale(0.25,0.6) -- mismo tamaño que el menu principal
+iconMenu.Size = UDim2.fromScale(0.3,0.6)
 iconMenu.Position = UDim2.fromScale(0.05,0.3)
 iconMenu.BackgroundColor3 = Color3.fromRGB(25,25,25)
 iconMenu.Visible = false
@@ -294,41 +270,16 @@ hideBtn.TextColor3 = Color3.new(1,1,1)
 hideBtn.BackgroundColor3 = Color3.fromRGB(40,40,40)
 Instance.new("UICorner", hideBtn).CornerRadius = UDim.new(0,12)
 
-local speedFrame = Instance.new("Frame", iconMenu)
-speedFrame.Size = UDim2.fromScale(0.9,0.35)
-speedFrame.Position = UDim2.fromScale(0.05,0.2)
-speedFrame.BackgroundTransparency = 1
-
-local minusBtn = Instance.new("TextButton", speedFrame)
-minusBtn.Size = UDim2.fromScale(0.3,0.25)
-minusBtn.Position = UDim2.fromScale(0,0)
-minusBtn.Text = "-"
-minusBtn.Font = Enum.Font.GothamBold
-minusBtn.TextScaled = true
-minusBtn.TextSize = 28
-minusBtn.TextColor3 = Color3.new(1,1,1)
-minusBtn.BackgroundColor3 = Color3.fromRGB(40,40,40)
-Instance.new("UICorner", minusBtn).CornerRadius = UDim.new(0,12)
-
-local plusBtn = Instance.new("TextButton", speedFrame)
-plusBtn.Size = UDim2.fromScale(0.3,0.25)
-plusBtn.Position = UDim2.fromScale(0.65,0)
-plusBtn.Text = "+"
-plusBtn.Font = Enum.Font.GothamBold
-plusBtn.TextScaled = true
-plusBtn.TextSize = 28
-plusBtn.TextColor3 = Color3.new(1,1,1)
-plusBtn.BackgroundColor3 = Color3.fromRGB(40,40,40)
-Instance.new("UICorner", plusBtn).CornerRadius = UDim.new(0,12)
-
-local speedLabel = Instance.new("TextLabel", speedFrame)
-speedLabel.Size = UDim2.fromScale(1,0.25)
-speedLabel.Position = UDim2.fromScale(0,0.35)
-speedLabel.Text = tostring(currentSpeed)
-speedLabel.TextColor3 = Color3.new(1,1,1)
-speedLabel.Font = Enum.Font.GothamBold
-speedLabel.TextScaled = true
-speedLabel.BackgroundTransparency = 1
+local keybindS = Instance.new("TextButton", iconMenu)
+keybindS.Size = UDim2.fromScale(0.9,0.09)
+keybindS.Position = UDim2.fromScale(0.05,0.18)
+keybindS.Text = "KEYBIND-S"
+keybindS.Font = Enum.Font.GothamBold
+keybindS.TextScaled = true
+keybindS.TextSize = 28
+keybindS.TextColor3 = Color3.new(1,1,1)
+keybindS.BackgroundColor3 = Color3.fromRGB(40,40,40)
+Instance.new("UICorner", keybindS).CornerRadius = UDim.new(0,12)
 
 -- DRAG ICONO
 local dI,dS,dP
@@ -339,43 +290,25 @@ icon.InputBegan:Connect(function(i)
 		dP = icon.Position
 	end
 end)
-
 UIS.InputChanged:Connect(function(i)
 	if dI and (i.UserInputType == Enum.UserInputType.MouseMovement or i.UserInputType == Enum.UserInputType.Touch) then
 		local delta = i.Position - dS
 		icon.Position = UDim2.new(dP.X.Scale,dP.X.Offset+delta.X,dP.Y.Scale,dP.Y.Offset+delta.Y)
 	end
 end)
-
 UIS.InputEnded:Connect(function() dI = false end)
 
--- BOTONES ICONO FUNCIONES
+-- FUNCIONES ICONO
 icon.MouseButton1Click:Connect(function()
 	click()
 	iconMenu.Visible = not iconMenu.Visible
 end)
-
 hideBtn.MouseButton1Click:Connect(function()
 	click()
 	frame.Visible = not frame.Visible
 end)
 
-plusBtn.MouseButton1Click:Connect(function()
-	click()
-	currentSpeed = currentSpeed + 1
-	speedLabel.Text = tostring(currentSpeed)
-	if speedOn then humanoid.WalkSpeed = currentSpeed end
-end)
-
-minusBtn.MouseButton1Click:Connect(function()
-	click()
-	currentSpeed = currentSpeed - 1
-	if currentSpeed < 0 then currentSpeed = 0 end
-	speedLabel.Text = tostring(currentSpeed)
-	if speedOn then humanoid.WalkSpeed = currentSpeed end
-end)
-
--- TELE-K (FIJO ARRIBA DERECHA)
+-- TELE-K FIJO
 local teleK = Instance.new("TextButton", gui)
 teleK.Size = UDim2.fromScale(0.08,0.08)
 teleK.Position = UDim2.fromScale(0.85,0.05)
@@ -393,9 +326,14 @@ keybindBtn.MouseButton1Click:Connect(function()
 	teleK.Visible = not teleK.Visible
 end)
 
+keybindS.MouseButton1Click:Connect(function()
+	click()
+	teleK.Visible = not teleK.Visible
+end)
+
 teleK.MouseButton1Click:Connect(function()
 	click()
 	doTeleport()
 end)
 
-print("✅ HAROLDCUPS listo, menus movibles, botones grandes, TELE-K fijo, icono redondo y velocidad sincronizada")
+print("✅ HAROLDCUPS listo, menú ancho, icono redondo, KEYBIND-S conectado con velocidad, TELE-K fijo arriba")
