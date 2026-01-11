@@ -158,25 +158,27 @@ closeBtn.MouseButton1Click:Connect(function()
 end)
 
 --------------------------------------------------
--- ESP (MEJORADO CON HITBOX)
+-- ESP (TU HITBOX AZUL, DEMÁS ROJO)
 --------------------------------------------------
 local espObjs = {}
-local hitboxObjs = {}
-
 local function clearESP()
 	for _,v in pairs(espObjs) do if v then v:Destroy() end end
-	for _,v in pairs(hitboxObjs) do if v then v:Destroy() end end
 	table.clear(espObjs)
-	table.clear(hitboxObjs)
 end
 
-local function createESP(plr,color, isLocal)
+local function createESP(plr,color)
 	if not plr.Character or not plr.Character:FindFirstChild("HumanoidRootPart") then return end
+	local box = Instance.new("BoxHandleAdornment", gui)
+	box.Adornee = plr.Character.HumanoidRootPart
+	box.Size = Vector3.new(4,6,2)
+	box.Transparency = 0.5
+	box.Color = color
+	box.AlwaysOnTop = true
+	table.insert(espObjs, box)
 
-	-- Billboard para nombre
 	local bb = Instance.new("BillboardGui", gui)
 	bb.Adornee = plr.Character.Head
-	bb.Size = UDim2.new(0,150,0,30)
+	bb.Size = UDim2.new(0,120,0,30)
 	bb.AlwaysOnTop = true
 
 	local t = Instance.new("TextLabel", bb)
@@ -185,24 +187,9 @@ local function createESP(plr,color, isLocal)
 	t.Text = plr.Name
 	t.Font = Enum.Font.GothamBlack
 	t.TextScaled = true
-	t.TextSize = isLocal and 18 or 28
 	t.TextColor3 = color
 	t.TextStrokeTransparency = 0
-
 	table.insert(espObjs, bb)
-
-	-- Crear hitbox grande
-	local hrp2 = plr.Character.HumanoidRootPart
-	local box = Instance.new("BoxHandleAdornment", gui)
-	box.Adornee = hrp2
-	box.AlwaysOnTop = true
-	box.ZIndex = 5
-	box.Size = hrp2.Size + Vector3.new(2,3,2)
-	box.Transparency = 0.5
-	box.Color = color
-	box.Visible = true
-
-	table.insert(hitboxObjs, box)
 end
 
 espBtn.MouseButton1Click:Connect(function()
@@ -212,11 +199,10 @@ espBtn.MouseButton1Click:Connect(function()
 	clearESP()
 
 	if espOn then
-		-- tu personaje en azul
-		createESP(player, Color3.fromRGB(0,0,255), true)
+		createESP(player, Color3.fromRGB(0,0,255)) -- tu hitbox azul
 		for _,p in pairs(Players:GetPlayers()) do
 			if p ~= player then
-				createESP(p, Color3.fromRGB(255,0,0), false)
+				createESP(p, Color3.fromRGB(255,0,0)) -- otros rojos
 			end
 		end
 	end
@@ -240,7 +226,7 @@ xrayBtn.MouseButton1Click:Connect(function()
 end)
 
 --------------------------------------------------
--- AUTO GRAB (TOCAR ROBAR/STEAL DESDE CUALQUIER LUGAR)
+-- AUTO GRAB (AGARRA ROBAR / STEAL DESDE CUALQUIER POS)
 --------------------------------------------------
 grabBtn.MouseButton1Click:Connect(function()
 	click()
@@ -255,9 +241,11 @@ RunService.Heartbeat:Connect(function()
 				local t = string.lower(v.ActionText or "")
 				if t:find("robar") or t:find("steal") then
 					pcall(function()
-						-- Forzar que se active aunque no estés cerca
+						-- Auto interactuar sin estar cerca
 						v.HoldDuration = 0
 						v:InputHoldBegin()
+						task.wait(0.1)
+						v:InputHoldEnd()
 					end)
 				end
 			end
@@ -303,8 +291,7 @@ Instance.new("UICorner", icon).CornerRadius = UDim.new(1,0)
 
 icon.MouseButton1Click:Connect(function()
 	click()
-	open = not open
-	frame.Visible = open
+	extraMenu.Visible = not extraMenu.Visible
 end)
 
 -- DRAG ICONO
@@ -327,7 +314,7 @@ end)
 UIS.InputEnded:Connect(function() dI = false end)
 
 --------------------------------------------------
--- TELEGUIADO FLOTANTE (SIEMPRE VISIBLE)
+-- TELEGUIADO FLOTANTE
 --------------------------------------------------
 local teleFloat = Instance.new("TextButton", gui)
 teleFloat.Size = UDim2.fromScale(0.24,0.085)
@@ -365,4 +352,60 @@ end)
 
 UIS.InputEnded:Connect(function() dT = false end)
 
-print("🐱 HAROLDCUPS — Todo listo con Auto Grab mejorado y ESP con hitbox 🚀")
+--------------------------------------------------
+-- MENU EXTRA DEL ICONO CIRCULAR
+--------------------------------------------------
+local extraMenu = Instance.new("Frame", gui)
+extraMenu.Size = UDim2.fromScale(0.3,0.25)
+extraMenu.Position = UDim2.fromScale(0.35,0.35)
+extraMenu.BackgroundColor3 = Color3.fromRGB(20,20,20)
+extraMenu.BorderSizePixel = 0
+extraMenu.Visible = false
+Instance.new("UICorner", extraMenu).CornerRadius = UDim.new(0,16)
+
+-- BOTON HIDE MENU
+local hideBtn = Instance.new("TextButton", extraMenu)
+hideBtn.Size = UDim2.fromScale(0.8,0.4)
+hideBtn.Position = UDim2.fromScale(0.1,0.05)
+hideBtn.Text = "HIDE MENU"
+hideBtn.Font = Enum.Font.GothamBold
+hideBtn.TextScaled = true
+hideBtn.TextColor3 = Color3.new(1,1,1)
+hideBtn.BackgroundColor3 = Color3.fromRGB(50,50,50)
+Instance.new("UICorner", hideBtn).CornerRadius = UDim.new(0,14)
+
+-- BOTON UNWALK ANIMATION
+local unwalkBtn = Instance.new("TextButton", extraMenu)
+unwalkBtn.Size = UDim2.fromScale(0.8,0.4)
+unwalkBtn.Position = UDim2.fromScale(0.1,0.55)
+unwalkBtn.Text = "UNWALK ANIMATION"
+unwalkBtn.Font = Enum.Font.GothamBold
+unwalkBtn.TextScaled = true
+unwalkBtn.TextColor3 = Color3.new(1,1,1)
+unwalkBtn.BackgroundColor3 = Color3.fromRGB(50,50,50)
+Instance.new("UICorner", unwalkBtn).CornerRadius = UDim.new(0,14)
+
+-- FUNCIONALIDAD BOTONES
+local function toggleUnwalk()
+	if not humanoid:FindFirstChild("UNWALK_ANIM") then
+		local idleAnim = Instance.new("Animation")
+		idleAnim.Name = "UNWALK_ANIM"
+		idleAnim.AnimationId = "rbxassetid://507771019"
+		local track = humanoid:LoadAnimation(idleAnim)
+		track.Priority = Enum.AnimationPriority.Action
+		track:Play()
+		track:AdjustSpeed(0)
+	end
+end
+
+hideBtn.MouseButton1Click:Connect(function()
+	click()
+	frame.Visible = not frame.Visible
+end)
+
+unwalkBtn.MouseButton1Click:Connect(function()
+	click()
+	toggleUnwalk()
+end)
+
+print("🐱 HAROLDCUPS — Todo listo, ESP y Auto Grab actualizados, menú extra agregado ✅")
