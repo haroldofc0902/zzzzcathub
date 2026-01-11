@@ -1,4 +1,4 @@
---// HAROLDCUPS - LOCAL SCRIPT FINAL
+--// HAROLDCUPS - CAT HUB FINAL
 
 local Players = game:GetService("Players")
 local RunService = game:GetService("RunService")
@@ -8,6 +8,7 @@ local player = Players.LocalPlayer
 local char = player.Character or player.CharacterAdded:Wait()
 local hrp = char:WaitForChild("HumanoidRootPart")
 local humanoid = char:WaitForChild("Humanoid")
+local animator = humanoid:FindFirstChildOfClass("Animator") or Instance.new("Animator", humanoid)
 
 local spawnCFrame = hrp.CFrame
 
@@ -15,6 +16,7 @@ player.CharacterAdded:Connect(function(c)
 	char = c
 	hrp = c:WaitForChild("HumanoidRootPart")
 	humanoid = c:WaitForChild("Humanoid")
+	animator = humanoid:FindFirstChildOfClass("Animator") or Instance.new("Animator", humanoid)
 	spawnCFrame = hrp.CFrame
 end)
 
@@ -26,6 +28,7 @@ local autoKick = false
 local espOn = false
 local xrayOn = false
 local grabOn = false
+local idleWalkOn = false
 
 local normalSpeed = 28
 local fastSpeed = 35
@@ -36,17 +39,13 @@ local fastSpeed = 35
 local gui = Instance.new("ScreenGui", player.PlayerGui)
 gui.ResetOnSpawn = false
 
---------------------------------------------------
 -- SONIDO CLICK
---------------------------------------------------
 local clickSound = Instance.new("Sound", gui)
 clickSound.SoundId = "rbxassetid://12221967"
 clickSound.Volume = 1
 local function click() clickSound:Play() end
 
---------------------------------------------------
 -- FRAME PRINCIPAL
---------------------------------------------------
 local frame = Instance.new("Frame", gui)
 frame.Size = UDim2.fromScale(0.38,0.62)
 frame.Position = UDim2.fromScale(0.31,0.2)
@@ -55,9 +54,7 @@ frame.BorderSizePixel = 0
 frame.Active = true
 Instance.new("UICorner", frame).CornerRadius = UDim.new(0,18)
 
---------------------------------------------------
 -- TITULO (DRAG)
---------------------------------------------------
 local title = Instance.new("TextLabel", frame)
 title.Size = UDim2.fromScale(1,0.12)
 title.BackgroundTransparency = 1
@@ -68,7 +65,7 @@ title.TextColor3 = Color3.fromRGB(255,90,90)
 title.Active = true
 
 --------------------------------------------------
--- CREAR BOTONES (TEXTO GRANDE)
+-- CREAR BOTONES
 --------------------------------------------------
 local function makeButton(text, posY, width)
 	local b = Instance.new("TextButton", frame)
@@ -105,17 +102,16 @@ local closeBtn = makeButton("CLOSE",0.71)
 -- TELEGUIADO
 --------------------------------------------------
 local function doTeleport()
-	-- Vuelo rápido hacia spawn/checkpoint
 	local startPos = hrp.Position
 	local endPos = spawnCFrame.Position
 	local direction = (endPos - startPos).Unit
 	local distance = (endPos - startPos).Magnitude
-	local speed = 300 -- unidades por segundo
+	local speed = 300
 
 	local travelled = 0
 	while travelled < distance do
-		RunService.Heartbeat:Wait()
-		local step = speed * RunService.Heartbeat:Wait()
+		local dt = RunService.Heartbeat:Wait()
+		local step = speed * dt
 		travelled = travelled + step
 		local newPos = startPos + direction * math.min(travelled, distance)
 		hrp.CFrame = CFrame.new(newPos, endPos)
@@ -158,7 +154,7 @@ closeBtn.MouseButton1Click:Connect(function()
 end)
 
 --------------------------------------------------
--- ESP (TU HITBOX AZUL, DEMÁS ROJO)
+-- ESP (TU HITBOX AZUL / DEMÁS ROJO)
 --------------------------------------------------
 local espObjs = {}
 local function clearESP()
@@ -168,19 +164,21 @@ end
 
 local function createESP(plr,color)
 	if not plr.Character or not plr.Character:FindFirstChild("HumanoidRootPart") then return end
-	local box = Instance.new("BoxHandleAdornment", gui)
-	box.Adornee = plr.Character.HumanoidRootPart
-	box.Size = Vector3.new(4,6,2)
-	box.Transparency = 0.5
+	local part = plr.Character:FindFirstChild("HumanoidRootPart")
+	local box = Instance.new("BoxHandleAdornment")
+	box.Adornee = part
+	box.Size = part.Size * Vector3.new(1.5,1.5,1.5)
 	box.Color = color
+	box.Transparency = 0.6
 	box.AlwaysOnTop = true
+	box.ZIndex = 10
+	box.Parent = gui
 	table.insert(espObjs, box)
 
 	local bb = Instance.new("BillboardGui", gui)
 	bb.Adornee = plr.Character.Head
-	bb.Size = UDim2.new(0,120,0,30)
+	bb.Size = UDim2.new(0,180,0,35)
 	bb.AlwaysOnTop = true
-
 	local t = Instance.new("TextLabel", bb)
 	t.Size = UDim2.new(1,0,1,0)
 	t.BackgroundTransparency = 1
@@ -197,12 +195,11 @@ espBtn.MouseButton1Click:Connect(function()
 	espOn = not espOn
 	espBtn.Text = espOn and "ESP : ON" or "ESP : OFF"
 	clearESP()
-
 	if espOn then
-		createESP(player, Color3.fromRGB(0,0,255)) -- tu hitbox azul
+		createESP(player, Color3.fromRGB(0,0,255))
 		for _,p in pairs(Players:GetPlayers()) do
 			if p ~= player then
-				createESP(p, Color3.fromRGB(255,0,0)) -- otros rojos
+				createESP(p, Color3.fromRGB(255,0,0))
 			end
 		end
 	end
@@ -215,7 +212,6 @@ xrayBtn.MouseButton1Click:Connect(function()
 	click()
 	xrayOn = not xrayOn
 	xrayBtn.Text = xrayOn and "X-RAY : ON" or "X-RAY : OFF"
-
 	for _,v in pairs(workspace:GetDescendants()) do
 		if v:IsA("BasePart") and not v:IsDescendantOf(char) then
 			if not v.Name:lower():find("floor") then
@@ -226,7 +222,7 @@ xrayBtn.MouseButton1Click:Connect(function()
 end)
 
 --------------------------------------------------
--- AUTO GRAB (AGARRA ROBAR / STEAL DESDE CUALQUIER POS)
+-- AUTO GRAB
 --------------------------------------------------
 grabBtn.MouseButton1Click:Connect(function()
 	click()
@@ -241,7 +237,6 @@ RunService.Heartbeat:Connect(function()
 				local t = string.lower(v.ActionText or "")
 				if t:find("robar") or t:find("steal") then
 					pcall(function()
-						-- Auto interactuar sin estar cerca
 						v.HoldDuration = 0
 						v:InputHoldBegin()
 						task.wait(0.1)
@@ -264,18 +259,16 @@ title.InputBegan:Connect(function(i)
 		startPos = frame.Position
 	end
 end)
-
 UIS.InputChanged:Connect(function(i)
 	if dragging and (i.UserInputType == Enum.UserInputType.MouseMovement or i.UserInputType == Enum.UserInputType.Touch) then
 		local d = i.Position - dragStart
 		frame.Position = UDim2.new(startPos.X.Scale,startPos.X.Offset+d.X,startPos.Y.Scale,startPos.Y.Offset+d.Y)
 	end
 end)
-
 UIS.InputEnded:Connect(function() dragging = false end)
 
 --------------------------------------------------
--- ICONO CIRCULAR
+-- ICONO CIRCULAR + MENU HIDE / UNWALK
 --------------------------------------------------
 local icon = Instance.new("TextButton", gui)
 icon.Size = UDim2.fromScale(0.09,0.09)
@@ -286,87 +279,19 @@ icon.TextScaled = true
 icon.TextColor3 = Color3.new(1,1,1)
 icon.BackgroundColor3 = Color3.new(0,0,0)
 icon.BorderSizePixel = 0
-icon.Active = true
 Instance.new("UICorner", icon).CornerRadius = UDim.new(1,0)
 
-icon.MouseButton1Click:Connect(function()
-	click()
-	extraMenu.Visible = not extraMenu.Visible
-end)
+local iconMenuOpen = false
+local iconMenuFrame = Instance.new("Frame", gui)
+iconMenuFrame.Size = UDim2.fromScale(0.2,0.25)
+iconMenuFrame.Position = UDim2.fromScale(0.35,0.3)
+iconMenuFrame.BackgroundColor3 = Color3.fromRGB(20,20,20)
+iconMenuFrame.Visible = false
+Instance.new("UICorner", iconMenuFrame).CornerRadius = UDim.new(0,12)
 
--- DRAG ICONO
-local dI, dStart, dPos
-icon.InputBegan:Connect(function(i)
-	if i.UserInputType == Enum.UserInputType.MouseButton1 or i.UserInputType == Enum.UserInputType.Touch then
-		dI = true
-		dStart = i.Position
-		dPos = icon.Position
-	end
-end)
-
-UIS.InputChanged:Connect(function(i)
-	if dI and (i.UserInputType == Enum.UserInputType.MouseMovement or i.UserInputType == Enum.UserInputType.Touch) then
-		local d = i.Position - dStart
-		icon.Position = UDim2.new(dPos.X.Scale,dPos.X.Offset+d.X,dPos.Y.Scale,dPos.Y.Offset+d.Y)
-	end
-end)
-
-UIS.InputEnded:Connect(function() dI = false end)
-
---------------------------------------------------
--- TELEGUIADO FLOTANTE
---------------------------------------------------
-local teleFloat = Instance.new("TextButton", gui)
-teleFloat.Size = UDim2.fromScale(0.24,0.085)
-teleFloat.Position = UDim2.fromScale(0.38,0.03)
-teleFloat.Text = "TELEGUIADO"
-teleFloat.Font = Enum.Font.GothamBlack
-teleFloat.TextScaled = true
-teleFloat.TextColor3 = Color3.new(1,1,1)
-teleFloat.BackgroundColor3 = Color3.fromRGB(255,80,80)
-teleFloat.BorderSizePixel = 0
-teleFloat.Active = true
-Instance.new("UICorner", teleFloat).CornerRadius = UDim.new(0,18)
-
-teleFloat.MouseButton1Click:Connect(function()
-	click()
-	doTeleport()
-end)
-
--- DRAG TELEGUIADO FLOTANTE
-local dT, sT, pT
-teleFloat.InputBegan:Connect(function(i)
-	if i.UserInputType == Enum.UserInputType.MouseButton1 or i.UserInputType == Enum.UserInputType.Touch then
-		dT = true
-		sT = i.Position
-		pT = teleFloat.Position
-	end
-end)
-
-UIS.InputChanged:Connect(function(i)
-	if dT and (i.UserInputType == Enum.UserInputType.MouseMovement or i.UserInputType == Enum.UserInputType.Touch) then
-		local d = i.Position - sT
-		teleFloat.Position = UDim2.new(pT.X.Scale,pT.X.Offset+d.X,pT.Y.Scale,pT.Y.Offset+d.Y)
-	end
-end)
-
-UIS.InputEnded:Connect(function() dT = false end)
-
---------------------------------------------------
--- MENU EXTRA DEL ICONO CIRCULAR
---------------------------------------------------
-local extraMenu = Instance.new("Frame", gui)
-extraMenu.Size = UDim2.fromScale(0.3,0.25)
-extraMenu.Position = UDim2.fromScale(0.35,0.35)
-extraMenu.BackgroundColor3 = Color3.fromRGB(20,20,20)
-extraMenu.BorderSizePixel = 0
-extraMenu.Visible = false
-Instance.new("UICorner", extraMenu).CornerRadius = UDim.new(0,16)
-
--- BOTON HIDE MENU
-local hideBtn = Instance.new("TextButton", extraMenu)
-hideBtn.Size = UDim2.fromScale(0.8,0.4)
-hideBtn.Position = UDim2.fromScale(0.1,0.05)
+local hideBtn = Instance.new("TextButton", iconMenuFrame)
+hideBtn.Size = UDim2.fromScale(0.9,0.35)
+hideBtn.Position = UDim2.fromScale(0.05,0.05)
 hideBtn.Text = "HIDE MENU"
 hideBtn.Font = Enum.Font.GothamBold
 hideBtn.TextScaled = true
@@ -374,10 +299,9 @@ hideBtn.TextColor3 = Color3.new(1,1,1)
 hideBtn.BackgroundColor3 = Color3.fromRGB(50,50,50)
 Instance.new("UICorner", hideBtn).CornerRadius = UDim.new(0,14)
 
--- BOTON UNWALK ANIMATION
-local unwalkBtn = Instance.new("TextButton", extraMenu)
-unwalkBtn.Size = UDim2.fromScale(0.8,0.4)
-unwalkBtn.Position = UDim2.fromScale(0.1,0.55)
+local unwalkBtn = Instance.new("TextButton", iconMenuFrame)
+unwalkBtn.Size = UDim2.fromScale(0.9,0.35)
+unwalkBtn.Position = UDim2.fromScale(0.05,0.55)
 unwalkBtn.Text = "UNWALK ANIMATION"
 unwalkBtn.Font = Enum.Font.GothamBold
 unwalkBtn.TextScaled = true
@@ -385,27 +309,32 @@ unwalkBtn.TextColor3 = Color3.new(1,1,1)
 unwalkBtn.BackgroundColor3 = Color3.fromRGB(50,50,50)
 Instance.new("UICorner", unwalkBtn).CornerRadius = UDim.new(0,14)
 
--- FUNCIONALIDAD BOTONES
-local function toggleUnwalk()
-	if not humanoid:FindFirstChild("UNWALK_ANIM") then
-		local idleAnim = Instance.new("Animation")
-		idleAnim.Name = "UNWALK_ANIM"
-		idleAnim.AnimationId = "rbxassetid://507771019"
-		local track = humanoid:LoadAnimation(idleAnim)
-		track.Priority = Enum.AnimationPriority.Action
-		track:Play()
-		track:AdjustSpeed(0)
-	end
-end
+icon.MouseButton1Click:Connect(function()
+	click()
+	iconMenuOpen = not iconMenuOpen
+	iconMenuFrame.Visible = iconMenuOpen
+end)
 
 hideBtn.MouseButton1Click:Connect(function()
 	click()
-	frame.Visible = not frame.Visible
+	open = not open
+	frame.Visible = open
 end)
+
+local idleAnim = Instance.new("Animation")
+idleAnim.AnimationId = "rbxassetid://507766666" -- ejemplo de idle
+local idleTrack
 
 unwalkBtn.MouseButton1Click:Connect(function()
 	click()
-	toggleUnwalk()
+	if idleWalkOn then
+		if idleTrack then idleTrack:Stop() end
+		idleWalkOn = false
+	else
+		idleTrack = animator:LoadAnimation(idleAnim)
+		idleTrack:Play()
+		idleWalkOn = true
+	end
 end)
 
-print("🐱 HAROLDCUPS — Todo listo, ESP y Auto Grab actualizados, menú extra agregado ✅")
+print("🐱 HAROLDCUPS — Todo listo, Auto Grab, ESP y menú circulo ✅")
