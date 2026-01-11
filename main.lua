@@ -24,6 +24,7 @@ local autoKick = false
 local espOn = false
 local xrayOn = false
 local grabOn = false
+local teleKOn = false
 
 local defaultSpeed = 28
 local speedValue = 36 -- velocidad inicial al activar SPEED
@@ -40,7 +41,7 @@ local function click() clickSound:Play() end
 
 -- FRAME PRINCIPAL
 local frame = Instance.new("Frame", gui)
-frame.Size = UDim2.fromScale(0.45,0.65)
+frame.Size = UDim2.fromScale(0.45,0.68)
 frame.Position = UDim2.fromScale(0.25,0.15)
 frame.BackgroundColor3 = Color3.fromRGB(25,25,25)
 frame.BorderSizePixel = 0
@@ -217,7 +218,7 @@ Instance.new("UICorner",icon).CornerRadius=UDim.new(1,0)
 
 -- MENU ICONO MOVIBLE
 local iconMenu = Instance.new("Frame",gui)
-iconMenu.Size=UDim2.fromScale(0.5,0.5)
+iconMenu.Size=UDim2.fromScale(0.45,0.5)
 iconMenu.Position=UDim2.fromScale(0.05,0.55)
 iconMenu.BackgroundColor3=Color3.fromRGB(30,30,30)
 iconMenu.Visible=false
@@ -239,7 +240,7 @@ hideBtn.MouseButton1Click:Connect(function()
 	frame.Visible = open
 end)
 
--- VELOCIDAD
+-- VELOCIDAD ICONO
 local speedLabel = Instance.new("TextLabel",iconMenu)
 speedLabel.Size=UDim2.fromScale(0.9,0.2)
 speedLabel.Position=UDim2.fromScale(0.05,0.3)
@@ -308,7 +309,7 @@ UIS.InputChanged:Connect(function(i)
 end)
 UIS.InputEnded:Connect(function() dI=false end)
 
--- TELE-K CUADRADO ROJO FIJO
+-- TELE-K CUADRADO ROJO FIJO ACTIVADO CON KEYBIND-T
 local teleKBtnFloating = Instance.new("TextButton",gui)
 teleKBtnFloating.Size=UDim2.fromScale(0.07,0.07)
 teleKBtnFloating.Position=UDim2.fromScale(0.88,0.02)
@@ -319,9 +320,17 @@ teleKBtnFloating.BackgroundColor3=Color3.fromRGB(255,50,50)
 teleKBtnFloating.TextColor3=Color3.new(1,1,1)
 teleKBtnFloating.BorderSizePixel=0
 Instance.new("UICorner",teleKBtnFloating).CornerRadius=UDim.new(0,6)
+teleKBtnFloating.Visible=false
+
+keybindBtn.MouseButton1Click:Connect(function()
+	click()
+	teleKOn = not teleKOn
+	teleKBtnFloating.Visible = teleKOn
+end)
+
 teleKBtnFloating.MouseButton1Click:Connect(function()
 	click()
 	doTeleport(spawnCFrame)
 end)
 
-print("✅ HAROLDCUPS — Menu final listo, todo alineado, botones grandes, TELE-K rojo fijo separado, SPEED sincronizado con icono.")
+print("✅ HAROLDCUPS — Menu final cuadrado, icono movible, TELE-K activable con KEYBIND-T, SPEED sincronizado con icono, todo alineado y grande.")
