@@ -1,4 +1,4 @@
--- CAT HUB FINAL 2.2
+-- CAT HUB FINAL 2.5
 
 -- SERVICES
 local Players = game:GetService("Players")
@@ -6,6 +6,7 @@ local RunService = game:GetService("RunService")
 local UIS = game:GetService("UserInputService")
 local player = Players.LocalPlayer
 local PlayerGui = player:WaitForChild("PlayerGui")
+local Workspace = game:GetService("Workspace")
 
 -- CHARACTER
 local char = player.Character or player.CharacterAdded:Wait()
@@ -199,45 +200,49 @@ end)
 --------------------------------------------------
 -- ESP
 --------------------------------------------------
-local espHighlights = {}
+local function applyESP(plr, state)
+	if not plr.Character then return end
+	local char = plr.Character
+	if state then
+		-- Nombre rojo
+		if not char:FindFirstChild("ESP_Name") then
+			local nameBill = Instance.new("BillboardGui", char)
+			nameBill.Name = "ESP_Name"
+			nameBill.Size = UDim2.new(0,200,0,50)
+			nameBill.Adornee = char:WaitForChild("Head")
+			nameBill.AlwaysOnTop = true
+			local txt = Instance.new("TextLabel", nameBill)
+			txt.Size = UDim2.new(1,0,1,0)
+			txt.BackgroundTransparency = 1
+			txt.Text = plr.Name
+			txt.TextColor3 = Color3.fromRGB(255,0,0)
+			txt.TextScaled = true
+			txt.Font = Enum.Font.GothamBold
+		end
+		for _, part in ipairs(char:GetChildren()) do
+			if part:IsA("BasePart") then
+				part.Color = Color3.fromRGB(255,0,0)
+				part.Transparency = 0.5
+			end
+		end
+	else
+		if char:FindFirstChild("ESP_Name") then char.ESP_Name:Destroy() end
+		for _, part in ipairs(char:GetChildren()) do
+			if part:IsA("BasePart") then
+				part.Color = Color3.fromRGB(255,255,255)
+				part.Transparency = 0
+			end
+		end
+	end
+end
+
 espBtn.MouseButton1Click:Connect(function()
 	clickSound:Play()
 	espOn = not espOn
 	espBtn.Text = espOn and "ESP : ON" or "ESP : OFF"
-
 	for _, plr in ipairs(Players:GetPlayers()) do
-		if plr ~= player and plr.Character then
-			local char = plr.Character
-			if espOn then
-				-- Nombre rojo
-				local nameBill = Instance.new("BillboardGui", char)
-				nameBill.Name = "ESP_Name"
-				nameBill.Size = UDim2.new(0, 200, 0, 50)
-				nameBill.Adornee = char:WaitForChild("Head")
-				nameBill.AlwaysOnTop = true
-				local txt = Instance.new("TextLabel", nameBill)
-				txt.Size = UDim2.new(1,0,1,0)
-				txt.BackgroundTransparency = 1
-				txt.Text = plr.Name
-				txt.TextColor3 = Color3.fromRGB(255,0,0)
-				txt.TextScaled = true
-				txt.Font = Enum.Font.GothamBold
-				-- Cuerpo rojo transparente
-				for _, part in ipairs(char:GetChildren()) do
-					if part:IsA("BasePart") then
-						part.Transparency = 0.5
-						part.Color = Color3.fromRGB(255,0,0)
-					end
-				end
-			else
-				if char:FindFirstChild("ESP_Name") then char.ESP_Name:Destroy() end
-				for _, part in ipairs(char:GetChildren()) do
-					if part:IsA("BasePart") then
-						part.Transparency = 0
-						part.Color = Color3.fromRGB(255,255,255)
-					end
-				end
-			end
+		if plr ~= player then
+			applyESP(plr, espOn)
 		end
 	end
 end)
@@ -245,15 +250,27 @@ end)
 --------------------------------------------------
 -- X-RAY
 --------------------------------------------------
+local xrayParts = {}
 xrayBtn.MouseButton1Click:Connect(function()
 	clickSound:Play()
 	xrayOn = not xrayOn
 	xrayBtn.Text = xrayOn and "X-RAY : ON" or "X-RAY : OFF"
 
-	for _, obj in ipairs(workspace:GetDescendants()) do
-		if obj:IsA("BasePart") and obj.Name:lower():find("wall") then -- detecta solo paredes
-			obj.Transparency = xrayOn and 0.5 or 0
+	if xrayOn then
+		for _, obj in ipairs(Workspace:GetDescendants()) do
+			if obj:IsA("BasePart") and obj.Position.Y > hrp.Position.Y - 5 then
+				-- Solo objetos arriba del suelo (no pisos)
+				xrayParts[obj] = obj.Transparency
+				obj.Transparency = 0.5
+			end
 		end
+	else
+		for obj, old in pairs(xrayParts) do
+			if obj and obj.Parent then
+				obj.Transparency = old
+			end
+		end
+		xrayParts = {}
 	end
 end)
 
@@ -269,9 +286,18 @@ end)
 
 RunService.RenderStepped:Connect(function()
 	if autoGrabOn then
-		for _, obj in ipairs(workspace:GetChildren()) do
+		for _, obj in ipairs(Workspace:GetDescendants()) do
 			if obj:IsA("BasePart") and (obj.Name:lower():find("robar") or obj.Name:lower():find("steal")) then
-				obj.CFrame = hrp.CFrame -- lo mueve al jugador automáticamente
+				if (hrp.Position - obj.Position).Magnitude < 6 then
+					-- Simula interacción automática
+					for _, cd in ipairs(obj:GetChildren()) do
+						if cd:IsA("ClickDetector") then
+							cd:FireClick(player)
+						elseif cd:IsA("ProximityPrompt") then
+							cd:InputHoldBegin(player)
+						end
+					end
+				end
 			end
 		end
 	end
@@ -325,4 +351,4 @@ teleKey.MouseButton1Click:Connect(function()
 end)
 
 --------------------------------------------------
-print("🐱 CAT HUB FINAL 2.2 — listo, draggable y funcional")
+print("🐱 CAT HUB FINAL 2.5 — listo, draggable y funcional")
