@@ -270,11 +270,97 @@ UIS.InputChanged:Connect(function(i)
 end)
 UIS.InputEnded:Connect(function() draggingIcon = false end)
 
--- ABRIR MENU DESDE ICONO
+-- MENU DEL ICONO
+local iconMenu = Instance.new("Frame", gui)
+iconMenu.Size = UDim2.fromScale(0.4,0.62)
+iconMenu.Position = UDim2.fromScale(0.15,0.15)
+iconMenu.BackgroundColor3 = Color3.fromRGB(25,25,25)
+iconMenu.Visible = false
+Instance.new("UICorner", iconMenu).CornerRadius = UDim.new(0,18)
+
+-- DRAG MENU ICONO
+local dragIconMenu, dragStartIconMenu, startPosIconMenu
+iconMenu.InputBegan:Connect(function(i)
+	if i.UserInputType == Enum.UserInputType.MouseButton1 or i.UserInputType == Enum.UserInputType.Touch then
+		dragIconMenu = true
+		dragStartIconMenu = i.Position
+		startPosIconMenu = iconMenu.Position
+	end
+end)
+UIS.InputChanged:Connect(function(i)
+	if dragIconMenu and (i.UserInputType == Enum.UserInputType.MouseMovement or i.UserInputType == Enum.UserInputType.Touch) then
+		local d = i.Position - dragStartIconMenu
+		iconMenu.Position = UDim2.new(startPosIconMenu.X.Scale,startPosIconMenu.X.Offset+d.X,startPosIconMenu.Y.Scale,startPosIconMenu.Y.Offset+d.Y)
+	end
+end)
+UIS.InputEnded:Connect(function() dragIconMenu = false end)
+
+-- BOTONES DEL MENU DEL ICONO
+local hideMenuBtn = Instance.new("TextButton", iconMenu)
+hideMenuBtn.Size = UDim2.fromScale(0.9,0.1)
+hideMenuBtn.Position = UDim2.fromScale(0.05,0.1)
+hideMenuBtn.Text = "HIDE MENU"
+hideMenuBtn.Font = Enum.Font.GothamBold
+hideMenuBtn.TextScaled = true
+hideMenuBtn.BackgroundColor3 = Color3.fromRGB(40,40,40)
+hideMenuBtn.BorderSizePixel = 0
+hideMenuBtn.TextColor3 = Color3.new(1,1,1)
+Instance.new("UICorner", hideMenuBtn).CornerRadius = UDim.new(0,14)
+
+hideMenuBtn.MouseButton1Click:Connect(function()
+	click()
+	frame.Visible = not frame.Visible
+end)
+
+-- VELOCIDAD ICONO
+local speedMinus = Instance.new("TextButton", iconMenu)
+speedMinus.Size = UDim2.fromScale(0.15,0.1)
+speedMinus.Position = UDim2.fromScale(0.05,0.3)
+speedMinus.Text = "-"
+speedMinus.Font = Enum.Font.GothamBold
+speedMinus.TextScaled = true
+speedMinus.BackgroundColor3 = Color3.fromRGB(40,40,40)
+speedMinus.BorderSizePixel = 0
+speedMinus.TextColor3 = Color3.new(1,1,1)
+Instance.new("UICorner", speedMinus).CornerRadius = UDim.new(0,14)
+
+local speedPlus = Instance.new("TextButton", iconMenu)
+speedPlus.Size = UDim2.fromScale(0.15,0.1)
+speedPlus.Position = UDim2.fromScale(0.25,0.3)
+speedPlus.Text = "+"
+speedPlus.Font = Enum.Font.GothamBold
+speedPlus.TextScaled = true
+speedPlus.BackgroundColor3 = Color3.fromRGB(40,40,40)
+speedPlus.BorderSizePixel = 0
+speedPlus.TextColor3 = Color3.new(1,1,1)
+Instance.new("UICorner", speedPlus).CornerRadius = UDim.new(0,14)
+
+local speedValueLabel = Instance.new("TextLabel", iconMenu)
+speedValueLabel.Size = UDim2.fromScale(0.55,0.1)
+speedValueLabel.Position = UDim2.fromScale(0.45,0.3)
+speedValueLabel.Text = tostring(currentSpeed)
+speedValueLabel.Font = Enum.Font.GothamBold
+speedValueLabel.TextScaled = true
+speedValueLabel.TextColor3 = Color3.new(1,1,1)
+speedValueLabel.BackgroundTransparency = 1
+
+speedPlus.MouseButton1Click:Connect(function()
+	click()
+	currentSpeed = currentSpeed + 1
+	humanoid.WalkSpeed = speedOn and currentSpeed or humanoid.WalkSpeed
+	speedValueLabel.Text = tostring(currentSpeed)
+end)
+
+speedMinus.MouseButton1Click:Connect(function()
+	click()
+	currentSpeed = currentSpeed - 1
+	humanoid.WalkSpeed = speedOn and currentSpeed or humanoid.WalkSpeed
+	speedValueLabel.Text = tostring(currentSpeed)
+end)
+
 icon.MouseButton1Click:Connect(function()
 	click()
-	open = not open
-	frame.Visible = open
+	iconMenu.Visible = not iconMenu.Visible
 end)
 
 --------------------------------------------------
@@ -303,4 +389,4 @@ teleKFloat.MouseButton1Click:Connect(function()
 	doTeleport()
 end)
 
-print("🐱 HAROLDCUPS HUB — Todo listo ✅, icono movible, TELEG-K volando ultra rápido 🚀")
+print("🐱 HAROLDCUPS HUB — Todo listo ✅, icono movible, TELEG-K ultra rápido 🚀")
