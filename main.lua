@@ -1,4 +1,4 @@
---// HAROLDCUPS - CAT HUB REVISADO
+--// HAROLDCUPS - CAT HUB AJUSTADO
 
 local Players = game:GetService("Players")
 local RunService = game:GetService("RunService")
@@ -43,11 +43,11 @@ clickSound.Volume = 1
 local function click() clickSound:Play() end
 
 --------------------------------------------------
--- FRAME PRINCIPAL (ESTILO |    |)
+-- FRAME PRINCIPAL (ESTILO |                    |)
 --------------------------------------------------
 local frame = Instance.new("Frame", gui)
-frame.Size = UDim2.fromScale(0.2,0.6) -- estrecho y alto
-frame.Position = UDim2.fromScale(0.4,0.2) -- centrado
+frame.Size = UDim2.fromScale(0.25,0.6) -- más ancho
+frame.Position = UDim2.fromScale(0.375,0.2) -- centrado
 frame.BackgroundColor3 = Color3.fromRGB(25,25,25)
 frame.BorderSizePixel = 0
 frame.Active = true
@@ -262,7 +262,7 @@ end)
 UIS.InputEnded:Connect(function() dragging = false end)
 
 --------------------------------------------------
--- ICONO PEQUEÑO (MOVIBLE)
+-- ICONO REDONDO MOVIBLE
 --------------------------------------------------
 local icon = Instance.new("TextButton", gui)
 icon.Size = UDim2.fromScale(0.08,0.08)
@@ -273,10 +273,10 @@ icon.TextScaled = true
 icon.TextColor3 = Color3.new(1,1,1)
 icon.BackgroundColor3 = Color3.fromRGB(0,0,0)
 icon.BorderSizePixel = 0
-Instance.new("UICorner", icon).CornerRadius = UDim.new(1,0)
+Instance.new("UICorner", icon).CornerRadius = UDim.new(1,0) -- totalmente redondo
 
 local iconMenu = Instance.new("Frame", gui)
-iconMenu.Size = UDim2.fromScale(0.2,0.25)
+iconMenu.Size = UDim2.fromScale(0.25,0.6) -- mismo tamaño que el menu principal
 iconMenu.Position = UDim2.fromScale(0.05,0.3)
 iconMenu.BackgroundColor3 = Color3.fromRGB(25,25,25)
 iconMenu.Visible = false
@@ -284,19 +284,19 @@ Instance.new("UICorner", iconMenu).CornerRadius = UDim.new(0,16)
 
 -- BOTONES ICONO
 local hideBtn = Instance.new("TextButton", iconMenu)
-hideBtn.Size = UDim2.fromScale(0.9,0.15)
+hideBtn.Size = UDim2.fromScale(0.9,0.09)
 hideBtn.Position = UDim2.fromScale(0.05,0.05)
 hideBtn.Text = "HIDE MENU"
 hideBtn.Font = Enum.Font.GothamBold
 hideBtn.TextScaled = true
-hideBtn.TextSize = 26
+hideBtn.TextSize = 28
 hideBtn.TextColor3 = Color3.new(1,1,1)
 hideBtn.BackgroundColor3 = Color3.fromRGB(40,40,40)
 Instance.new("UICorner", hideBtn).CornerRadius = UDim.new(0,12)
 
 local speedFrame = Instance.new("Frame", iconMenu)
 speedFrame.Size = UDim2.fromScale(0.9,0.35)
-speedFrame.Position = UDim2.fromScale(0.05,0.25)
+speedFrame.Position = UDim2.fromScale(0.05,0.2)
 speedFrame.BackgroundTransparency = 1
 
 local minusBtn = Instance.new("TextButton", speedFrame)
@@ -305,7 +305,7 @@ minusBtn.Position = UDim2.fromScale(0,0)
 minusBtn.Text = "-"
 minusBtn.Font = Enum.Font.GothamBold
 minusBtn.TextScaled = true
-minusBtn.TextSize = 26
+minusBtn.TextSize = 28
 minusBtn.TextColor3 = Color3.new(1,1,1)
 minusBtn.BackgroundColor3 = Color3.fromRGB(40,40,40)
 Instance.new("UICorner", minusBtn).CornerRadius = UDim.new(0,12)
@@ -316,7 +316,7 @@ plusBtn.Position = UDim2.fromScale(0.65,0)
 plusBtn.Text = "+"
 plusBtn.Font = Enum.Font.GothamBold
 plusBtn.TextScaled = true
-plusBtn.TextSize = 26
+plusBtn.TextSize = 28
 plusBtn.TextColor3 = Color3.new(1,1,1)
 plusBtn.BackgroundColor3 = Color3.fromRGB(40,40,40)
 Instance.new("UICorner", plusBtn).CornerRadius = UDim.new(0,12)
@@ -398,4 +398,4 @@ teleK.MouseButton1Click:Connect(function()
 	doTeleport()
 end)
 
-print("✅ HAROLDCUPS listo, menus movibles, botones grandes, TELE-K fijo y velocidad sincronizada")
+print("✅ HAROLDCUPS listo, menus movibles, botones grandes, TELE-K fijo, icono redondo y velocidad sincronizada")
