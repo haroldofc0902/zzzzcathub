@@ -40,8 +40,8 @@ local function click() clickSound:Play() end
 
 -- FRAME PRINCIPAL
 local frame = Instance.new("Frame", gui)
-frame.Size = UDim2.fromScale(0.38,0.62)
-frame.Position = UDim2.fromScale(0.31,0.2)
+frame.Size = UDim2.fromScale(0.45,0.65)
+frame.Position = UDim2.fromScale(0.25,0.15)
 frame.BackgroundColor3 = Color3.fromRGB(25,25,25)
 frame.BorderSizePixel = 0
 frame.Active = true
@@ -73,21 +73,18 @@ local function makeButton(text,posY,width)
 	return b
 end
 
--- BOTONES PRINCIPALES (LETRAS GRANDES Y MÁS ABAJO)
-local teleBtn  = makeButton("TELEGUIADO",0.18)
-local speedBtn = makeButton("SPEED : OFF",0.3)
-local kickBtn  = makeButton("AUTO KICK : OFF",0.42)
-local espBtn   = makeButton("ESP : OFF",0.54,0.43)
-espBtn.Position = UDim2.fromScale(0.05,0.54)
-local xrayBtn  = makeButton("X-RAY : OFF",0.54,0.43)
-xrayBtn.Position = UDim2.fromScale(0.52,0.54)
-local grabBtn  = makeButton("AUTO GRAB : OFF",0.66)
-local closeBtn = makeButton("CLOSE",0.78)
-local teleKBtn = makeButton("TELE-K",0.9)
-teleKBtn.BackgroundColor3 = Color3.fromRGB(255,50,50) -- rojo
-teleKBtn.TextColor3 = Color3.new(1,1,1)
+-- BOTONES PRINCIPALES ORDENADOS
+local teleBtn  = makeButton("TELEGUIADO",0.12)
+local speedBtn = makeButton("SPEED : OFF",0.25)
+local kickBtn  = makeButton("AUTO KICK : OFF",0.38)
+local espBtn   = makeButton("ESP : OFF",0.51,0.43)
+espBtn.Position = UDim2.fromScale(0.05,0.51)
+local xrayBtn  = makeButton("X-RAY : OFF",0.51,0.43)
+xrayBtn.Position = UDim2.fromScale(0.52,0.51)
+local keybindBtn = makeButton("KEYBIND-T",0.64)
+local closeBtn = makeButton("CLOSE",0.77)
 
--- FUNCION TELEGUIADO VOLANDO
+-- TELEGUIADO VOLANDO
 local function doTeleport(targetCFrame)
 	local startPos = hrp.Position
 	local endPos = targetCFrame.Position
@@ -188,29 +185,6 @@ xrayBtn.MouseButton1Click:Connect(function()
 	end
 end)
 
--- AUTO GRAB
-grabBtn.MouseButton1Click:Connect(function()
-	click()
-	grabOn = not grabOn
-	grabBtn.Text = grabOn and "AUTO GRAB : ON" or "AUTO GRAB : OFF"
-end)
-
-RunService.Heartbeat:Connect(function()
-	if grabOn then
-		for _,v in pairs(workspace:GetDescendants()) do
-			if v:IsA("ProximityPrompt") then
-				local t = string.lower(v.ActionText or "")
-				if t:find("robar") or t:find("steal") then
-					pcall(function()
-						v.HoldDuration=0
-						v:InputHoldBegin()
-					end)
-				end
-			end
-		end
-	end
-end)
-
 -- DRAG MENU PRINCIPAL
 local dragging,dragStart,startPos
 title.InputBegan:Connect(function(i)
@@ -228,7 +202,7 @@ UIS.InputChanged:Connect(function(i)
 end)
 UIS.InputEnded:Connect(function() dragging=false end)
 
--- ICONO CIRCULAR
+-- ICONO CIRCULAR MOVIBLE
 local icon = Instance.new("TextButton",gui)
 icon.Size = UDim2.fromScale(0.12,0.12)
 icon.Position = UDim2.fromScale(0.03,0.45)
@@ -241,9 +215,9 @@ icon.BorderSizePixel=0
 icon.Active=true
 Instance.new("UICorner",icon).CornerRadius=UDim.new(1,0)
 
--- MENU ICONO
+-- MENU ICONO MOVIBLE
 local iconMenu = Instance.new("Frame",gui)
-iconMenu.Size=UDim2.fromScale(0.45,0.45)
+iconMenu.Size=UDim2.fromScale(0.5,0.5)
 iconMenu.Position=UDim2.fromScale(0.05,0.55)
 iconMenu.BackgroundColor3=Color3.fromRGB(30,30,30)
 iconMenu.Visible=false
@@ -251,7 +225,7 @@ Instance.new("UICorner",iconMenu).CornerRadius=UDim.new(0,18)
 
 -- HIDE MENU
 local hideBtn = Instance.new("TextButton",iconMenu)
-hideBtn.Size=UDim2.fromScale(0.9,0.3)
+hideBtn.Size=UDim2.fromScale(0.9,0.2)
 hideBtn.Position=UDim2.fromScale(0.05,0.05)
 hideBtn.Text="HIDE MENU"
 hideBtn.Font=Enum.Font.GothamBold
@@ -268,7 +242,7 @@ end)
 -- VELOCIDAD
 local speedLabel = Instance.new("TextLabel",iconMenu)
 speedLabel.Size=UDim2.fromScale(0.9,0.2)
-speedLabel.Position=UDim2.fromScale(0.05,0.4)
+speedLabel.Position=UDim2.fromScale(0.05,0.3)
 speedLabel.Text=tostring(speedValue)
 speedLabel.TextScaled=true
 speedLabel.TextColor3=Color3.new(1,1,1)
@@ -279,7 +253,7 @@ speedLabel.TextStrokeTransparency=0
 -- BOTONES + Y -
 local plusBtn = Instance.new("TextButton",iconMenu)
 plusBtn.Size=UDim2.fromScale(0.4,0.2)
-plusBtn.Position=UDim2.fromScale(0.05,0.7)
+plusBtn.Position=UDim2.fromScale(0.05,0.6)
 plusBtn.Text="+"
 plusBtn.Font=Enum.Font.GothamBold
 plusBtn.TextScaled=true
@@ -289,7 +263,7 @@ Instance.new("UICorner",plusBtn).CornerRadius=UDim.new(0,12)
 
 local minusBtn = Instance.new("TextButton",iconMenu)
 minusBtn.Size=UDim2.fromScale(0.4,0.2)
-minusBtn.Position=UDim2.fromScale(0.55,0.7)
+minusBtn.Position=UDim2.fromScale(0.55,0.6)
 minusBtn.Text="-"
 minusBtn.Font=Enum.Font.GothamBold
 minusBtn.TextScaled=true
@@ -317,28 +291,37 @@ icon.MouseButton1Click:Connect(function()
 	iconMenu.Visible = not iconMenu.Visible
 end)
 
--- DRAG ICONO
+-- DRAG ICONO MENU
 local dI,dStart,dPos
-icon.InputBegan:Connect(function(i)
+iconMenu.InputBegan:Connect(function(i)
 	if i.UserInputType==Enum.UserInputType.MouseButton1 or i.UserInputType==Enum.UserInputType.Touch then
 		dI=true
 		dStart=i.Position
-		dPos=icon.Position
+		dPos=iconMenu.Position
 	end
 end)
 UIS.InputChanged:Connect(function(i)
 	if dI and (i.UserInputType==Enum.UserInputType.MouseMovement or i.UserInputType==Enum.UserInputType.Touch) then
 		local d=i.Position-dStart
-		icon.Position=UDim2.new(dPos.X.Scale,dPos.X.Offset+d.X,dPos.Y.Scale,dPos.Y.Offset+d.Y)
+		iconMenu.Position=UDim2.new(dPos.X.Scale,dPos.X.Offset+d.X,dPos.Y.Scale,dPos.Y.Offset+d.Y)
 	end
 end)
 UIS.InputEnded:Connect(function() dI=false end)
 
--- TELE-K FIJO
-teleKBtn.Position=UDim2.fromScale(0.78,0.02)
-teleKBtn.MouseButton1Click:Connect(function()
+-- TELE-K CUADRADO ROJO FIJO
+local teleKBtnFloating = Instance.new("TextButton",gui)
+teleKBtnFloating.Size=UDim2.fromScale(0.07,0.07)
+teleKBtnFloating.Position=UDim2.fromScale(0.88,0.02)
+teleKBtnFloating.Text="TELE-K"
+teleKBtnFloating.Font=Enum.Font.GothamBold
+teleKBtnFloating.TextScaled=true
+teleKBtnFloating.BackgroundColor3=Color3.fromRGB(255,50,50)
+teleKBtnFloating.TextColor3=Color3.new(1,1,1)
+teleKBtnFloating.BorderSizePixel=0
+Instance.new("UICorner",teleKBtnFloating).CornerRadius=UDim.new(0,6)
+teleKBtnFloating.MouseButton1Click:Connect(function()
 	click()
 	doTeleport(spawnCFrame)
 end)
 
-print("✅ HAROLDCUPS — Menu final listo, todo alineado, botones grandes, TELE-K rojo fijo, SPEED sincronizado con icono.")
+print("✅ HAROLDCUPS — Menu final listo, todo alineado, botones grandes, TELE-K rojo fijo separado, SPEED sincronizado con icono.")
