@@ -1,4 +1,4 @@
---// REZXKURD - LOCAL SCRIPT PANEL
+--// REZXKURD - PANEL 3 BOTONES
 
 local Players = game:GetService("Players")
 local RunService = game:GetService("RunService")
@@ -37,7 +37,7 @@ local function click() clickSound:Play() end
 
 -- FRAME PRINCIPAL
 local frame = Instance.new("Frame", gui)
-frame.Size = UDim2.fromScale(0.35,0.60)
+frame.Size = UDim2.fromScale(0.35,0.40) -- ajustado para 3 botones
 frame.Position = UDim2.fromScale(0.32,0.18)
 frame.BackgroundColor3 = Color3.fromRGB(25,25,25)
 frame.BorderSizePixel = 0
@@ -46,7 +46,7 @@ Instance.new("UICorner", frame).CornerRadius = UDim.new(0,18)
 
 -- TITULO
 local title = Instance.new("TextLabel", frame)
-title.Size = UDim2.fromScale(1,0.08)
+title.Size = UDim2.fromScale(1,0.12)
 title.BackgroundTransparency = 1
 title.Text = "rezxKurd"
 title.Font = Enum.Font.GothamBlack
@@ -55,9 +55,9 @@ title.TextColor3 = Color3.fromRGB(0,150,255)
 title.Active = true
 
 -- FUNCION PARA BOTONES GRANDES
-local function makeButton(text, posY, width)
+local function makeButton(text, posY)
     local b = Instance.new("TextButton", frame)
-    b.Size = UDim2.fromScale(width or 0.9,0.09)
+    b.Size = UDim2.fromScale(0.9,0.15) -- botones grandes y visibles
     b.Position = UDim2.fromScale(0.05,posY)
     b.Text = text
     b.Font = Enum.Font.GothamBold
@@ -70,10 +70,10 @@ local function makeButton(text, posY, width)
     return b
 end
 
--- BOTONES PANEL (solo 3 botones)
-local teleBtn  = makeButton("TELEPORT",0.15)
-local grabBtn  = makeButton("AUTO GRAB",0.25)
-local kickBtn  = makeButton("AUTO KICK",0.35)
+-- BOTONES PANEL
+local teleBtn  = makeButton("TELEPORT",0.12)
+local grabBtn  = makeButton("AUTO GRAB",0.32) -- justo debajo de TELEPORT
+local kickBtn  = makeButton("AUTO KICK",0.52)
 
 -- FUNCION TELEPORT
 local function doTeleport()
@@ -103,7 +103,7 @@ end
 
 teleBtn.MouseButton1Click:Connect(doTeleport)
 
--- FUNCION AUTO GRAB (source exacto de Harold Cup)
+-- FUNCION AUTO GRAB
 grabBtn.MouseButton1Click:Connect(function()
     click()
     grabOn = not grabOn
@@ -150,4 +150,4 @@ UIS.InputChanged:Connect(function(i)
 end)
 UIS.InputEnded:Connect(function() dragging = false end)
 
-print("🐱 Script completo con TELEPORT, AUTO GRAB y AUTO KICK ✅")
+print("🐱 Panel listo con TELEPORT, AUTO GRAB y AUTO KICK ✅")
