@@ -1,4 +1,4 @@
---// HAROLD CUP - LOCAL SCRIPT FINAL (PANEL AJUSTADO A 3 BOTONES)
+--// HAROLD CUP - PANEL COMPACTO PERFECTO
 
 local Players = game:GetService("Players")
 local RunService = game:GetService("RunService")
@@ -6,16 +6,8 @@ local UIS = game:GetService("UserInputService")
 local player = Players.LocalPlayer
 local char = player.Character or player.CharacterAdded:Wait()
 local hrp = char:WaitForChild("HumanoidRootPart")
-local humanoid = char:WaitForChild("Humanoid")
 
 local spawnCFrame = hrp.CFrame
-
-player.CharacterAdded:Connect(function(c)
-	char = c
-	hrp = c:WaitForChild("HumanoidRootPart")
-	humanoid = c:WaitForChild("Humanoid")
-	spawnCFrame = hrp.CFrame
-end)
 
 -- ESTADOS
 local autoKick = false
@@ -25,15 +17,15 @@ local grabOn = false
 local gui = Instance.new("ScreenGui", player.PlayerGui)
 gui.ResetOnSpawn = false
 
--- SONIDO CLICK
+-- CLICK SOUND
 local clickSound = Instance.new("Sound", gui)
 clickSound.SoundId = "rbxassetid://12221967"
 clickSound.Volume = 1
 local function click() clickSound:Play() end
 
--- FRAME (AJUSTADO EXACTO)
+-- FRAME (AJUSTADO A 3 BOTONES)
 local frame = Instance.new("Frame", gui)
-frame.Size = UDim2.fromScale(0.35, 0.36) -- 👈 SIN ESPACIO ABAJO
+frame.Size = UDim2.fromScale(0.35, 0.42)
 frame.Position = UDim2.fromScale(0.32, 0.28)
 frame.BackgroundColor3 = Color3.fromRGB(25,25,25)
 frame.BorderSizePixel = 0
@@ -42,7 +34,7 @@ Instance.new("UICorner", frame).CornerRadius = UDim.new(0,18)
 
 -- TITULO
 local title = Instance.new("TextLabel", frame)
-title.Size = UDim2.fromScale(1,0.14)
+title.Size = UDim2.fromScale(1,0.16)
 title.BackgroundTransparency = 1
 title.Text = "rezxKurd"
 title.Font = Enum.Font.GothamBlack
@@ -50,7 +42,7 @@ title.TextScaled = true
 title.TextColor3 = Color3.fromRGB(0,150,255)
 title.Active = true
 
--- BOTONES (MISMO ESTILO)
+-- BOTONES GRANDES (MISMO ESTILO)
 local function makeButton(text, posY)
 	local b = Instance.new("TextButton", frame)
 	b.Size = UDim2.fromScale(0.9,0.18)
@@ -58,6 +50,7 @@ local function makeButton(text, posY)
 	b.Text = text
 	b.Font = Enum.Font.GothamBold
 	b.TextScaled = true
+	b.TextSize = 28
 	b.TextColor3 = Color3.new(1,1,1)
 	b.BackgroundColor3 = Color3.fromRGB(40,40,40)
 	b.BorderSizePixel = 0
@@ -65,32 +58,18 @@ local function makeButton(text, posY)
 	return b
 end
 
--- BOTONES
+-- BOTONES (PEGADOS, SIN ESPACIOS)
 local teleBtn = makeButton("TELEPORT", 0.18)
-local grabBtn = makeButton("AUTO GRAB", 0.40)
-local kickBtn = makeButton("AUTO KICK", 0.62)
+local grabBtn = makeButton("AUTO GRAB", 0.38)
+local kickBtn = makeButton("AUTO KICK", 0.58)
 
 -- TELEPORT
 teleBtn.MouseButton1Click:Connect(function()
 	click()
-	local startPos = hrp.Position
-	local endPos = spawnCFrame.Position
-	local dir = (endPos - startPos).Unit
-	local dist = (endPos - startPos).Magnitude
-	local speed = 300
-	local moved = 0
-
 	teleBtn.Text = "teleporting..."
-
-	local conn
-	conn = RunService.Heartbeat:Connect(function(dt)
-		moved += speed * dt
-		hrp.CFrame = CFrame.new(startPos + dir * math.min(moved, dist))
-		if moved >= dist then
-			hrp.CFrame = spawnCFrame
-			teleBtn.Text = "TELEPORT"
-			conn:Disconnect()
-		end
+	hrp.CFrame = spawnCFrame
+	task.delay(0.3, function()
+		teleBtn.Text = "TELEPORT"
 	end)
 end)
 
@@ -148,4 +127,4 @@ UIS.InputEnded:Connect(function()
 	dragging = false
 end)
 
-print("Panel ajustado exacto a 3 botones 🔥")
+print("Panel compacto perfecto 🔥")
