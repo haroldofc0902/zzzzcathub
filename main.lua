@@ -1,160 +1,148 @@
+-- Services
 local CoreGui = game:GetService("CoreGui")
-local Players = game:GetService("Players")
 local UserInputService = game:GetService("UserInputService")
-local TweenService = game:GetService("TweenService")
 local RunService = game:GetService("RunService")
 
-local LocalPlayer = Players.LocalPlayer
-
 -- CONFIG
-local UI_CONFIG = {
-    MainColor = Color3.fromRGB(20, 15, 30),
-    StrokeColor = Color3.fromRGB(130, 50, 210),
-    TextColor = Color3.fromRGB(100, 150, 255),
-    AccentColor = Color3.fromRGB(140, 40, 220),
-    ToggleOn = Color3.fromRGB(100, 255, 160),
-    ToggleOff = Color3.fromRGB(60, 60, 60),
-    Font = Enum.Font.GothamBold,
-    CornerRadius = UDim.new(0, 12)
-}
+local PANEL_COLOR = Color3.fromRGB(15, 15, 15)
+local BUTTON_COLOR = Color3.fromRGB(15, 15, 15)
+local BUTTON_ACTIVE_COLOR = Color3.fromRGB(255, 0, 0)
+local BUTTON_STROKE_COLOR = Color3.fromRGB(255, 255, 255)
+local BUTTON_STROKE_ACTIVE = Color3.fromRGB(255, 150, 150)
+local TEXT_COLOR = Color3.fromRGB(255, 255, 255)
 
-local function Create(className, properties, children)
-    local instance = Instance.new(className)
-    for k, v in pairs(properties or {}) do
-        instance[k] = v
-    end
-    for _, child in pairs(children or {}) do
-        child.Parent = instance
-    end
-    return instance
-end
+-- // PANEL //
+local ScreenGui = Instance.new("ScreenGui")
+ScreenGui.Name = "rexHub"
+ScreenGui.Parent = CoreGui
 
--- DESTROY EXISTING
-if CoreGui:FindFirstChild("rexHub") then
-    CoreGui.rexHub:Destroy()
-end
+local MainFrame = Instance.new("Frame")
+MainFrame.Parent = ScreenGui
+MainFrame.Size = UDim2.new(0, 120, 0, 80)
+MainFrame.Position = UDim2.new(0.5, -60, 0.5, -40)
+MainFrame.BackgroundColor3 = PANEL_COLOR
+MainFrame.BorderSizePixel = 0
 
-local ScreenGui = Create("ScreenGui", {
-    Name = "rexHub",
-    Parent = CoreGui,
-    ZIndexBehavior = Enum.ZIndexBehavior.Sibling
-})
+local Corner = Instance.new("UICorner")
+Corner.CornerRadius = UDim.new(0, 12)
+Corner.Parent = MainFrame
 
--- MAIN PANEL
-local MainFrame = Create("Frame", {
-    Name = "MainFrame",
-    BackgroundColor3 = UI_CONFIG.MainColor,
-    BorderSizePixel = 0,
-    Position = UDim2.new(0.5, -150, 0.5, -100),
-    Size = UDim2.new(0, 300, 0, 150),
-    Parent = ScreenGui
-}, {
-    Create("UICorner", {CornerRadius = UI_CONFIG.CornerRadius}),
-    Create("UIStroke", {Color = UI_CONFIG.StrokeColor, Thickness = 2})
-})
-
--- HEADER
-local Header = Create("Frame", {
-    Name = "Header",
-    BackgroundTransparency = 1,
-    Size = UDim2.new(1, 0, 0, 30),
-    Parent = MainFrame
-}, {
-    Create("TextLabel", {
-        Name = "Title",
-        BackgroundTransparency = 1,
-        Position = UDim2.new(0, 10, 0, 5),
-        Size = UDim2.new(1, -20, 0, 20),
-        Font = UI_CONFIG.Font,
-        Text = "rexHub",
-        TextColor3 = UI_CONFIG.TextColor,
-        TextSize = 14,
-        TextXAlignment = Enum.TextXAlignment.Left
-    })
-})
-
--- DRAGGING LOGIC
+-- DRAG LOGIC FOR PANEL
 local dragging, dragInput, dragStart, startPos
-Header.InputBegan:Connect(function(input)
+local function update(input)
+    local delta = input.Position - dragStart
+    MainFrame.Position = UDim2.new(startPos.X.Scale, startPos.X.Offset + delta.X,
+                                   startPos.Y.Scale, startPos.Y.Offset + delta.Y)
+end
+
+MainFrame.InputBegan:Connect(function(input)
     if input.UserInputType == Enum.UserInputType.MouseButton1 then
         dragging = true
         dragStart = input.Position
         startPos = MainFrame.Position
         input.Changed:Connect(function()
-            if input.UserInputState == Enum.UserInputState.End then
-                dragging = false
-            end
+            if input.UserInputState == Enum.UserInputState.End then dragging = false end
         end)
     end
 end)
 
-Header.InputChanged:Connect(function(input)
+MainFrame.InputChanged:Connect(function(input)
     if input.UserInputType == Enum.UserInputType.MouseMovement then
         dragInput = input
     end
 end)
 
 UserInputService.InputChanged:Connect(function(input)
-    if input == dragInput and dragging then
-        local delta = input.Position - dragStart
-        MainFrame.Position = UDim2.new(startPos.X.Scale, startPos.X.Offset + delta.X, startPos.Y.Scale, startPos.Y.Offset + delta.Y)
-    end
+    if input == dragInput and dragging then update(input) end
 end)
 
--- BUTTON CREATION
-local function CreateButton(text, color)
-    local btnFrame = Create("Frame", {
-        BackgroundColor3 = Color3.fromRGB(25, 20, 35),
-        Size = UDim2.new(1, 0, 0, 40),
-        Parent = MainFrame
-    }, {
-        Create("UICorner", {CornerRadius = UDim.new(0, 10)}),
-        Create("UIStroke", {Color = UI_CONFIG.StrokeColor, Thickness = 1})
-    })
+-- // DESYNC BUTTON //
+local DesyncButton = Instance.new("TextButton")
+DesyncButton.Parent = MainFrame
+DesyncButton.Size = UDim2.new(1, -10, 1, -10)
+DesyncButton.Position = UDim2.new(0, 5, 0, 5)
+DesyncButton.BackgroundColor3 = BUTTON_COLOR
+DesyncButton.Font = Enum.Font.FredokaOne
+DesyncButton.TextSize = 16
+DesyncButton.TextColor3 = TEXT_COLOR
+DesyncButton.Text = "Desync"
 
-    local btn = Create("TextButton", {
-        BackgroundTransparency = 1,
-        Size = UDim2.new(1, 0, 1, 0),
-        Font = UI_CONFIG.Font,
-        Text = text,
-        TextColor3 = color or UI_CONFIG.TextColor,
-        TextSize = 16,
-        Parent = btnFrame
-    })
-    return btnFrame, btn
-end
+local ButtonCorner = Instance.new("UICorner")
+ButtonCorner.CornerRadius = UDim.new(0, 12)
+ButtonCorner.Parent = DesyncButton
 
--- START BUTTON
-local StartFrame, StartBtn = CreateButton("Start", UI_CONFIG.AccentColor)
-StartFrame.Position = UDim2.new(0, 0, 0, 50)
-StartFrame.Parent = MainFrame
+local ButtonStroke = Instance.new("UIStroke")
+ButtonStroke.Color = BUTTON_STROKE_COLOR
+ButtonStroke.Thickness = 3
+ButtonStroke.ApplyStrokeMode = Enum.ApplyStrokeMode.Border
+ButtonStroke.Parent = DesyncButton
 
-local LagEnabled = false
+-- // DESYNC LOGIC FROM YOUR SOURCE //
+local DESYNC_FLAGS = {
+    {"DFIntS2PhysicsSenderRate", "-30"},          
+    {"WorldStepMax", "-1"},                                 
+    {"DFIntTouchSenderMaxBandwidthBps", "-1"},            
+    {"DFFlagUseClientAuthoritativePhysicsForHumanoids", "True"},
+    {"DFFlagClientCharacterControllerPhysicsOverride", "True"},
+    {"DFIntSimBlockLargeLocalToolWeldManipulationsThreshold", "-1"},
+    {"DFIntClientPhysicsMaxSendRate", "2147483647"},
+    {"DFIntPhysicsSenderRate", "2147483647"},
+    {"DFIntClientPhysicsSendRate", "2147483647"},
+    {"DFIntNetworkSendRate", "2147483647"},
+    {"DFIntDebugSimPrimalNewtonIts", "0"},
+    {"DFIntDebugSimPrimalPreconditioner", "0"},
+    {"DFIntDebugSimPrimalPreconditionerMinExp", "0"},
+    {"DFIntDebugSimPrimalToleranceInv", "0"},
+    {"DFIntMinClientSimulationRadius", "2147000000"},
+    {"DFIntMaxClientSimulationRadius", "2147000000"},
+    {"DFIntClientSimulationRadiusBuffer", "2147000000"},
+    {"DFIntMinimalSimRadiusBuffer", "2147000000"},
+    {"DFIntSimVelocityCorrectionDampening", "0"},
+    {"DFIntSimPositionCorrectionDampening", "0"},
+    {"DFFlagDebugDisablePositionCorrection", "True"},
+    {"GameNetPVHeaderRotationalVelocityZeroCutoffExponent", "-2147483647"},
+    {"GameNetPVHeaderLinearVelocityZeroCutoffExponent", "-2147483647"},
+    {"DFIntUnstickForceAttackInTenths", "-20"},
+}
 
--- FUNCTION TO LAG OTHER PLAYERS
-local function LagOtherPlayers()
-    task.spawn(function()
-        while LagEnabled do
-            for _, plr in pairs(Players:GetPlayers()) do
-                if plr ~= LocalPlayer and plr.Character and plr.Character:FindFirstChild("HumanoidRootPart") then
-                    -- Aquí va el código que causa "lag" o spameo, solo para otros
-                    -- Ejemplo: mover el HumanoidRootPart ligeramente o spamear un evento remoto
-                    -- NO TOCAR LocalPlayer para que no te afecte
-                end
-            end
-            task.wait(0.05)
+local isMacroActive = false
+local loopConnection = nil
+
+local function spamFlags()
+    if setfflag then
+        for _, flagData in ipairs(DESYNC_FLAGS) do
+            pcall(function()
+                setfflag(flagData[1], flagData[2])
+            end)
         end
-    end)
+    end
 end
 
-StartBtn.MouseButton1Click:Connect(function()
-    if not LagEnabled then
-        LagEnabled = true
-        StartBtn.Text = "Stop"
-        StartBtn.TextColor3 = Color3.fromRGB(255,255,255)
-        LagOtherPlayers()
+DesyncButton.MouseButton1Click:Connect(function()
+    isMacroActive = not isMacroActive
+    
+    if isMacroActive then
+        -- Cambia texto a "Desync..." mientras ejecuta
+        DesyncButton.Text = "Desync..."
+        DesyncButton.BackgroundColor3 = BUTTON_ACTIVE_COLOR
+        ButtonStroke.Color = BUTTON_STROKE_ACTIVE
+        loopConnection = RunService.RenderStepped:Connect(spamFlags)
     else
-        LagEnabled = false
-        StartBtn.Text = "Start"
+        -- Vuelve a texto original
+        DesyncButton.Text = "Desync"
+        DesyncButton.BackgroundColor3 = BUTTON_COLOR
+        ButtonStroke.Color = BUTTON_STROKE_COLOR
+        if loopConnection then
+            loopConnection:Disconnect()
+            loopConnection = nil
+        end
+        
+        if setfflag then
+            pcall(function()
+                for _, flagData in ipairs(DESYNC_FLAGS) do
+                    setfflag(flagData[1], "False")
+                end
+            end)
+        end
     end
 end)
