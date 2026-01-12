@@ -119,7 +119,7 @@ local TeleportBtn = CreateButton("TELEPORT", ButtonsFrame)
 TeleportBtn.Position = UDim2.new(0.05,0,0,0)
 
 -- AUTO KICK BUTTON
-local AutoKickBtn = CreateButton("AUTO KICK", ButtonsFrame)
+local AutoKickBtn = CreateButton("AUTO KICK [OFF]", ButtonsFrame)
 AutoKickBtn.Position = UDim2.new(0.05,0,0,60)
 
 -- SOUND
@@ -139,7 +139,7 @@ local function teleportPlayer()
     TeleportBtn.Text = "teleporting..."
     
     local distance = (spawnPos.Position - hrp.Position).Magnitude
-    local speed = 500 -- studs per second, ultra rápido
+    local speed = 500
     local duration = distance/speed
     local startPos = hrp.Position
     local goalPos = spawnPos.Position
@@ -157,61 +157,71 @@ local function teleportPlayer()
     end)
 end
 
--- AUTO KICK FUNCTION
-local function autoKickFunc()
+-- AUTO KICK LOGIC
+local autoKickActive = false
+local function toggleAutoKick()
     clickSound:Play()
-    local keyword = "you stole"
-    local kickMessage = "You stole a pet by rezxKurd"
+    autoKickActive = not autoKickActive
+    AutoKickBtn.Text = autoKickActive and "AUTO KICK [ON]" or "AUTO KICK [OFF]"
     
-    local function hasKeyword(text)
-        if typeof(text) ~= "string" then return false end
-        return string.find(string.lower(text), keyword) ~= nil
-    end
+    if autoKickActive then
+        spawn(function()
+            local keyword = "you stole"
+            local kickMessage = "You stole a pet by rezxKurd"
 
-    local function kickPlayer()
-        pcall(function()
-            player:Kick(kickMessage)
-        end)
-    end
+            local function hasKeyword(text)
+                if typeof(text) ~= "string" then return false end
+                return string.find(string.lower(text), keyword) ~= nil
+            end
 
-    local function scanGuiObjects(parent)
-        for _, obj in ipairs(parent:GetDescendants()) do
-            if obj:IsA("TextLabel") or obj:IsA("TextButton") or obj:IsA("TextBox") then
-                if hasKeyword(obj.Text) then
-                    kickPlayer()
-                    return true
+            local function kickPlayer()
+                pcall(function()
+                    player:Kick(kickMessage)
+                end)
+            end
+
+            local function scanGuiObjects(parent)
+                for _, obj in ipairs(parent:GetDescendants()) do
+                    if obj:IsA("TextLabel") or obj:IsA("TextButton") or obj:IsA("TextBox") then
+                        if hasKeyword(obj.Text) then
+                            kickPlayer()
+                            return true
+                        end
+                        obj:GetPropertyChangedSignal("Text"):Connect(function()
+                            if hasKeyword(obj.Text) and autoKickActive then kickPlayer() end
+                        end)
+                    end
                 end
-                obj:GetPropertyChangedSignal("Text"):Connect(function()
-                    if hasKeyword(obj.Text) then kickPlayer() end
-                end)
+                return false
             end
-        end
-        return false
-    end
 
-    local function setupGuiWatcher(gui)
-        gui.DescendantAdded:Connect(function(desc)
-            if desc:IsA("TextLabel") or desc:IsA("TextButton") or desc:IsA("TextBox") then
-                if hasKeyword(desc.Text) then kickPlayer() end
-                desc:GetPropertyChangedSignal("Text"):Connect(function()
-                    if hasKeyword(desc.Text) then kickPlayer() end
+            local function setupGuiWatcher(gui)
+                gui.DescendantAdded:Connect(function(desc)
+                    if desc:IsA("TextLabel") or desc:IsA("TextButton") or desc:IsA("TextBox") then
+                        if hasKeyword(desc.Text) and autoKickActive then
+                            kickPlayer()
+                        end
+                        desc:GetPropertyChangedSignal("Text"):Connect(function()
+                            if hasKeyword(desc.Text) and autoKickActive then kickPlayer() end
+                        end)
+                    end
                 end)
             end
+
+            for _, gui in ipairs(player:WaitForChild("PlayerGui"):GetChildren()) do
+                setupGuiWatcher(gui)
+            end
+
+            player.PlayerGui.ChildAdded:Connect(function(gui)
+                setupGuiWatcher(gui)
+                scanGuiObjects(gui)
+            end)
+
+            scanGuiObjects(player.PlayerGui)
         end)
     end
-
-    for _, gui in ipairs(player:WaitForChild("PlayerGui"):GetChildren()) do
-        setupGuiWatcher(gui)
-    end
-
-    player.PlayerGui.ChildAdded:Connect(function(gui)
-        setupGuiWatcher(gui)
-        scanGuiObjects(gui)
-    end)
-
-    scanGuiObjects(player.PlayerGui)
 end
 
 -- BUTTON CONNECTIONS
 TeleportBtn.MouseButton1Click:Connect(teleportPlayer)
-AutoKickBtn.MouseButton1Click:Connect(autoKickFunc)
+AutoKickBtn.MouseButton1Click:Connect(toggleAutoKick)
