@@ -1,4 +1,4 @@
---// HAROLD CUP - LOCAL SCRIPT FINAL (AUTO GRAB AÑADIDO SIN CAMBIAR DISEÑO)
+--// HAROLD CUP - LOCAL SCRIPT FINAL (PANEL AJUSTADO A 3 BOTONES)
 
 local Players = game:GetService("Players")
 local RunService = game:GetService("RunService")
@@ -18,11 +18,8 @@ player.CharacterAdded:Connect(function(c)
 end)
 
 -- ESTADOS
-local speedOn = false
 local autoKick = false
 local grabOn = false
-local normalSpeed = 28
-local fastSpeed = 36
 
 -- GUI
 local gui = Instance.new("ScreenGui", player.PlayerGui)
@@ -34,10 +31,10 @@ clickSound.SoundId = "rbxassetid://12221967"
 clickSound.Volume = 1
 local function click() clickSound:Play() end
 
--- FRAME PRINCIPAL
+-- FRAME (AJUSTADO EXACTO)
 local frame = Instance.new("Frame", gui)
-frame.Size = UDim2.fromScale(0.35, 0.42) -- AJUSTADO A 3 BOTONES
-frame.Position = UDim2.fromScale(0.32, 0.25)
+frame.Size = UDim2.fromScale(0.35, 0.36) -- 👈 SIN ESPACIO ABAJO
+frame.Position = UDim2.fromScale(0.32, 0.28)
 frame.BackgroundColor3 = Color3.fromRGB(25,25,25)
 frame.BorderSizePixel = 0
 frame.Active = true
@@ -45,7 +42,7 @@ Instance.new("UICorner", frame).CornerRadius = UDim.new(0,18)
 
 -- TITULO
 local title = Instance.new("TextLabel", frame)
-title.Size = UDim2.fromScale(1,0.12)
+title.Size = UDim2.fromScale(1,0.14)
 title.BackgroundTransparency = 1
 title.Text = "rezxKurd"
 title.Font = Enum.Font.GothamBlack
@@ -53,10 +50,10 @@ title.TextScaled = true
 title.TextColor3 = Color3.fromRGB(0,150,255)
 title.Active = true
 
--- FUNCION BOTONES (NO TOCADA)
+-- BOTONES (MISMO ESTILO)
 local function makeButton(text, posY)
 	local b = Instance.new("TextButton", frame)
-	b.Size = UDim2.fromScale(0.9,0.14)
+	b.Size = UDim2.fromScale(0.9,0.18)
 	b.Position = UDim2.fromScale(0.05,posY)
 	b.Text = text
 	b.Font = Enum.Font.GothamBold
@@ -68,10 +65,10 @@ local function makeButton(text, posY)
 	return b
 end
 
--- BOTONES (ORDEN CORRECTO)
+-- BOTONES
 local teleBtn = makeButton("TELEPORT", 0.18)
-local grabBtn = makeButton("AUTO GRAB", 0.36)
-local kickBtn = makeButton("AUTO KICK", 0.54)
+local grabBtn = makeButton("AUTO GRAB", 0.40)
+local kickBtn = makeButton("AUTO KICK", 0.62)
 
 -- TELEPORT
 teleBtn.MouseButton1Click:Connect(function()
@@ -87,8 +84,7 @@ teleBtn.MouseButton1Click:Connect(function()
 
 	local conn
 	conn = RunService.Heartbeat:Connect(function(dt)
-		local step = speed * dt
-		moved += step
+		moved += speed * dt
 		hrp.CFrame = CFrame.new(startPos + dir * math.min(moved, dist))
 		if moved >= dist then
 			hrp.CFrame = spawnCFrame
@@ -98,7 +94,7 @@ teleBtn.MouseButton1Click:Connect(function()
 	end)
 end)
 
--- AUTO GRAB (TU SOURCE ORIGINAL)
+-- AUTO GRAB
 grabBtn.MouseButton1Click:Connect(function()
 	click()
 	grabOn = not grabOn
@@ -141,7 +137,10 @@ end)
 UIS.InputChanged:Connect(function(i)
 	if dragging and (i.UserInputType == Enum.UserInputType.MouseMovement or i.UserInputType == Enum.UserInputType.Touch) then
 		local d = i.Position - dragStart
-		frame.Position = UDim2.new(startPos.X.Scale,startPos.X.Offset+d.X,startPos.Y.Scale,startPos.Y.Offset+d.Y)
+		frame.Position = UDim2.new(
+			startPos.X.Scale, startPos.X.Offset + d.X,
+			startPos.Y.Scale, startPos.Y.Offset + d.Y
+		)
 	end
 end)
 
@@ -149,4 +148,4 @@ UIS.InputEnded:Connect(function()
 	dragging = false
 end)
 
-print("Panel limpio, botones grandes y sin espacio basura 😎")
+print("Panel ajustado exacto a 3 botones 🔥")
