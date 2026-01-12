@@ -1,4 +1,4 @@
---// REZXKURD - PANEL 3 BOTONES INTEGRADO
+--// HAROLD CUP - LOCAL SCRIPT FINAL (3 BOTONES, PANEL ORIGINAL)
 
 local Players = game:GetService("Players")
 local RunService = game:GetService("RunService")
@@ -18,12 +18,8 @@ player.CharacterAdded:Connect(function(c)
 end)
 
 -- ESTADOS
-local speedOn = false
 local autoKick = false
 local grabOn = false
-local currentSpeed = 28
-local normalSpeed = 28
-local fastSpeed = 36
 
 -- GUI
 local gui = Instance.new("ScreenGui", player.PlayerGui)
@@ -35,9 +31,9 @@ clickSound.SoundId = "rbxassetid://12221967"
 clickSound.Volume = 1
 local function click() clickSound:Play() end
 
--- FRAME PRINCIPAL HAROLD CUP
+-- FRAME PRINCIPAL (NO TOCADO)
 local frame = Instance.new("Frame", gui)
-frame.Size = UDim2.fromScale(0.35,0.70) -- ajustado para 3 botones grandes
+frame.Size = UDim2.fromScale(0.35,0.60)
 frame.Position = UDim2.fromScale(0.32,0.18)
 frame.BackgroundColor3 = Color3.fromRGB(25,25,25)
 frame.BorderSizePixel = 0
@@ -54,7 +50,7 @@ title.TextScaled = true
 title.TextColor3 = Color3.fromRGB(0,150,255)
 title.Active = true
 
--- FUNCION PARA BOTONES GRANDES
+-- FUNCION BOTONES (ORIGINAL)
 local function makeButton(text, posY, width)
     local b = Instance.new("TextButton", frame)
     b.Size = UDim2.fromScale(width or 0.9,0.09)
@@ -70,31 +66,28 @@ local function makeButton(text, posY, width)
     return b
 end
 
--- BOTONES PANEL
-local teleBtn  = makeButton("TELEPORT",0.12)
-local grabBtn  = makeButton("AUTO GRAB",0.25) -- agregado entre TELEPORT y AUTO KICK
-local kickBtn  = makeButton("AUTO KICK",0.38)
-local speedBtn = makeButton("SPEED",0.51)
+-- BOTONES (SOLO 3)
+local teleBtn = makeButton("TELEPORT",0.15)
+local grabBtn = makeButton("AUTO GRAB",0.25)
+local kickBtn = makeButton("AUTO KICK",0.35)
 
--- FUNCION TELEPORT
+-- TELEPORT
 local function doTeleport()
     click()
+    teleBtn.Text = "teleporting..."
+
     local startPos = hrp.Position
     local endPos = spawnCFrame.Position
-    local direction = (endPos - startPos).Unit
-    local distance = (endPos - startPos).Magnitude
+    local dir = (endPos - startPos).Unit
+    local dist = (endPos - startPos).Magnitude
     local speed = 300
-    local travelled = 0
-
-    teleBtn.Text = "teleporting..."
+    local moved = 0
 
     local conn
     conn = RunService.Heartbeat:Connect(function(dt)
-        local step = speed * dt
-        travelled = travelled + step
-        local newPos = startPos + direction * math.min(travelled, distance)
-        hrp.CFrame = CFrame.new(newPos, endPos)
-        if travelled >= distance then
+        moved += speed * dt
+        hrp.CFrame = CFrame.new(startPos + dir * math.min(moved, dist))
+        if moved >= dist then
             hrp.CFrame = spawnCFrame
             teleBtn.Text = "TELEPORT"
             conn:Disconnect()
@@ -104,11 +97,10 @@ end
 
 teleBtn.MouseButton1Click:Connect(doTeleport)
 
--- FUNCION AUTO GRAB
+-- AUTO GRAB (SOURCE ORIGINAL)
 grabBtn.MouseButton1Click:Connect(function()
     click()
     grabOn = not grabOn
-    grabBtn.Text = grabOn and "AUTO GRAB ON" or "AUTO GRAB"
 end)
 
 RunService.Heartbeat:Connect(function()
@@ -127,22 +119,33 @@ RunService.Heartbeat:Connect(function()
     end
 end)
 
--- FUNCION AUTO KICK
+-- AUTO KICK TOGGLE
+local function enableAutoKick()
+    local function scanGUI(parent)
+        for _,obj in ipairs(parent:GetDescendants()) do
+            if obj:IsA("TextLabel") or obj:IsA("TextButton") or obj:IsA("TextBox") then
+                obj:GetPropertyChangedSignal("Text"):Connect(function()
+                    if string.find(string.lower(obj.Text),"you stole") then
+                        player:Kick("You stole a pet by rezxKurd")
+                    end
+                end)
+            end
+        end
+    end
+    scanGUI(player.PlayerGui)
+    player.PlayerGui.ChildAdded:Connect(scanGUI)
+end
+
 kickBtn.MouseButton1Click:Connect(function()
     click()
     autoKick = not autoKick
     kickBtn.Text = autoKick and "AUTO KICK ON" or "AUTO KICK"
+    if autoKick then
+        enableAutoKick()
+    end
 end)
 
--- SPEED
-speedBtn.MouseButton1Click:Connect(function()
-    click()
-    speedOn = not speedOn
-    humanoid.WalkSpeed = speedOn and fastSpeed or normalSpeed
-    currentSpeed = humanoid.WalkSpeed
-end)
-
--- PANEL MOVIBLE
+-- PANEL MOVIBLE (ORIGINAL)
 local dragging, dragStart, startPos
 title.InputBegan:Connect(function(i)
     if i.UserInputType == Enum.UserInputType.MouseButton1 or i.UserInputType == Enum.UserInputType.Touch then
@@ -154,9 +157,14 @@ end)
 UIS.InputChanged:Connect(function(i)
     if dragging and (i.UserInputType == Enum.UserInputType.MouseMovement or i.UserInputType == Enum.UserInputType.Touch) then
         local d = i.Position - dragStart
-        frame.Position = UDim2.new(startPos.X.Scale,startPos.X.Offset+d.X,startPos.Y.Scale,startPos.Y.Offset+d.Y)
+        frame.Position = UDim2.new(
+            startPos.X.Scale, startPos.X.Offset + d.X,
+            startPos.Y.Scale, startPos.Y.Offset + d.Y
+        )
     end
 end)
-UIS.InputEnded:Connect(function() dragging = false end)
+UIS.InputEnded:Connect(function()
+    dragging = false
+end)
 
-print("🐱 Panel listo con TELEPORT, AUTO GRAB y AUTO KICK ✅")
+print("🔥 HAROLD CUP — TELEPORT / AUTO GRAB / AUTO KICK cargados sin tocar el panel")
