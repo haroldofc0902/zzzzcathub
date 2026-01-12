@@ -1,4 +1,4 @@
---// REZXKURD - PANEL 3 BOTONES
+--// REZXKURD - PANEL 3 BOTONES INTEGRADO
 
 local Players = game:GetService("Players")
 local RunService = game:GetService("RunService")
@@ -35,9 +35,9 @@ clickSound.SoundId = "rbxassetid://12221967"
 clickSound.Volume = 1
 local function click() clickSound:Play() end
 
--- FRAME PRINCIPAL
+-- FRAME PRINCIPAL HAROLD CUP
 local frame = Instance.new("Frame", gui)
-frame.Size = UDim2.fromScale(0.35,0.40) -- ajustado para 3 botones
+frame.Size = UDim2.fromScale(0.35,0.70) -- ajustado para 3 botones grandes
 frame.Position = UDim2.fromScale(0.32,0.18)
 frame.BackgroundColor3 = Color3.fromRGB(25,25,25)
 frame.BorderSizePixel = 0
@@ -46,7 +46,7 @@ Instance.new("UICorner", frame).CornerRadius = UDim.new(0,18)
 
 -- TITULO
 local title = Instance.new("TextLabel", frame)
-title.Size = UDim2.fromScale(1,0.12)
+title.Size = UDim2.fromScale(1,0.08)
 title.BackgroundTransparency = 1
 title.Text = "rezxKurd"
 title.Font = Enum.Font.GothamBlack
@@ -55,9 +55,9 @@ title.TextColor3 = Color3.fromRGB(0,150,255)
 title.Active = true
 
 -- FUNCION PARA BOTONES GRANDES
-local function makeButton(text, posY)
+local function makeButton(text, posY, width)
     local b = Instance.new("TextButton", frame)
-    b.Size = UDim2.fromScale(0.9,0.15) -- botones grandes y visibles
+    b.Size = UDim2.fromScale(width or 0.9,0.09)
     b.Position = UDim2.fromScale(0.05,posY)
     b.Text = text
     b.Font = Enum.Font.GothamBold
@@ -72,8 +72,9 @@ end
 
 -- BOTONES PANEL
 local teleBtn  = makeButton("TELEPORT",0.12)
-local grabBtn  = makeButton("AUTO GRAB",0.32) -- justo debajo de TELEPORT
-local kickBtn  = makeButton("AUTO KICK",0.52)
+local grabBtn  = makeButton("AUTO GRAB",0.25) -- agregado entre TELEPORT y AUTO KICK
+local kickBtn  = makeButton("AUTO KICK",0.38)
+local speedBtn = makeButton("SPEED",0.51)
 
 -- FUNCION TELEPORT
 local function doTeleport()
@@ -131,6 +132,14 @@ kickBtn.MouseButton1Click:Connect(function()
     click()
     autoKick = not autoKick
     kickBtn.Text = autoKick and "AUTO KICK ON" or "AUTO KICK"
+end)
+
+-- SPEED
+speedBtn.MouseButton1Click:Connect(function()
+    click()
+    speedOn = not speedOn
+    humanoid.WalkSpeed = speedOn and fastSpeed or normalSpeed
+    currentSpeed = humanoid.WalkSpeed
 end)
 
 -- PANEL MOVIBLE
