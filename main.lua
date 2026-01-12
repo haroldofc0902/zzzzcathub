@@ -1,4 +1,4 @@
---// HAROLD CUP - LOCAL SCRIPT FINAL INTEGRADO
+--// REZXKURD - LOCAL SCRIPT PANEL
 
 local Players = game:GetService("Players")
 local RunService = game:GetService("RunService")
@@ -20,6 +20,7 @@ end)
 -- ESTADOS
 local speedOn = false
 local autoKick = false
+local grabOn = false
 local currentSpeed = 28
 local normalSpeed = 28
 local fastSpeed = 36
@@ -34,7 +35,7 @@ clickSound.SoundId = "rbxassetid://12221967"
 clickSound.Volume = 1
 local function click() clickSound:Play() end
 
--- FRAME PRINCIPAL HAROLD CUP
+-- FRAME PRINCIPAL
 local frame = Instance.new("Frame", gui)
 frame.Size = UDim2.fromScale(0.35,0.60)
 frame.Position = UDim2.fromScale(0.32,0.18)
@@ -47,7 +48,7 @@ Instance.new("UICorner", frame).CornerRadius = UDim.new(0,18)
 local title = Instance.new("TextLabel", frame)
 title.Size = UDim2.fromScale(1,0.08)
 title.BackgroundTransparency = 1
-title.Text = "rezxKurd" -- Nombre arriba del panel
+title.Text = "rezxKurd"
 title.Font = Enum.Font.GothamBlack
 title.TextScaled = true
 title.TextColor3 = Color3.fromRGB(0,150,255)
@@ -69,13 +70,14 @@ local function makeButton(text, posY, width)
     return b
 end
 
--- BOTONES PANEL
+-- BOTONES PANEL (solo 3 botones)
 local teleBtn  = makeButton("TELEPORT",0.15)
+local grabBtn  = makeButton("AUTO GRAB",0.25)
 local kickBtn  = makeButton("AUTO KICK",0.35)
 
--- SONIDO Y FUNCIONES BOTONES
+-- FUNCION TELEPORT
 local function doTeleport()
-    click() -- reproducir sonido
+    click()
     local startPos = hrp.Position
     local endPos = spawnCFrame.Position
     local direction = (endPos - startPos).Unit
@@ -101,43 +103,34 @@ end
 
 teleBtn.MouseButton1Click:Connect(doTeleport)
 
--- AUTO KICK TOGGLE
-local function autoKickFunc()
-    if autoKick then
-        autoKick = false
-        kickBtn.Text = "AUTO KICK"
-    else
-        autoKick = true
-        kickBtn.Text = "AUTO KICK ON"
-        -- Escanea GUI y kickea si detecta "you stole"
-        local function scanGUI(parent)
-            for _, obj in ipairs(parent:GetDescendants()) do
-                if obj:IsA("TextLabel") or obj:IsA("TextButton") or obj:IsA("TextBox") then
-                    obj:GetPropertyChangedSignal("Text"):Connect(function()
-                        if string.find(string.lower(obj.Text),"you stole") then
-                            player:Kick("You stole a pet by rezxKurd")
-                        end
+-- FUNCION AUTO GRAB (source exacto de Harold Cup)
+grabBtn.MouseButton1Click:Connect(function()
+    click()
+    grabOn = not grabOn
+    grabBtn.Text = grabOn and "AUTO GRAB ON" or "AUTO GRAB"
+end)
+
+RunService.Heartbeat:Connect(function()
+    if grabOn then
+        for _,v in pairs(workspace:GetDescendants()) do
+            if v:IsA("ProximityPrompt") then
+                local t = string.lower(v.ActionText or "")
+                if t:find("robar") or t:find("steal") then
+                    pcall(function()
+                        v.HoldDuration = 0
+                        v:InputHoldBegin()
                     end)
                 end
             end
         end
-        scanGUI(player.PlayerGui)
-        player.PlayerGui.ChildAdded:Connect(scanGUI)
     end
-end
-
-kickBtn.MouseButton1Click:Connect(function()
-    click()
-    autoKickFunc()
 end)
 
--- SPEED (para mantener funcional)
-speedBtn = makeButton("SPEED",0.25)
-speedBtn.MouseButton1Click:Connect(function()
+-- FUNCION AUTO KICK
+kickBtn.MouseButton1Click:Connect(function()
     click()
-    speedOn = not speedOn
-    humanoid.WalkSpeed = speedOn and fastSpeed or normalSpeed
-    currentSpeed = humanoid.WalkSpeed
+    autoKick = not autoKick
+    kickBtn.Text = autoKick and "AUTO KICK ON" or "AUTO KICK"
 end)
 
 -- PANEL MOVIBLE
@@ -157,4 +150,4 @@ UIS.InputChanged:Connect(function(i)
 end)
 UIS.InputEnded:Connect(function() dragging = false end)
 
-print("🐱 Script completo con TELEPORT y AUTO KICK toggle listo ✅")
+print("🐱 Script completo con TELEPORT, AUTO GRAB y AUTO KICK ✅")
