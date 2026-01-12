@@ -1,33 +1,63 @@
--- Services
 local CoreGui = game:GetService("CoreGui")
+local Players = game:GetService("Players")
 local UserInputService = game:GetService("UserInputService")
 local RunService = game:GetService("RunService")
+local TweenService = game:GetService("TweenService")
+local player = Players.LocalPlayer
 
 -- CONFIG
-local PANEL_COLOR = Color3.fromRGB(15, 15, 15)
-local BUTTON_COLOR = Color3.fromRGB(15, 15, 15)
-local BUTTON_ACTIVE_COLOR = Color3.fromRGB(255, 0, 0)
-local BUTTON_STROKE_COLOR = Color3.fromRGB(255, 255, 255)
-local BUTTON_STROKE_ACTIVE = Color3.fromRGB(255, 150, 150)
-local TEXT_COLOR = Color3.fromRGB(255, 255, 255)
+local UI_CONFIG = {
+    MainColor = Color3.fromRGB(20, 15, 30),
+    StrokeColor = Color3.fromRGB(80, 120, 255),
+    TextColor = Color3.fromRGB(80, 120, 255),
+    ButtonColor = Color3.fromRGB(40, 40, 50),
+    ButtonTextColor = Color3.fromRGB(255, 255, 255),
+    Font = Enum.Font.GothamBold,
+    CornerRadius = UDim.new(0, 10)
+}
 
--- // PANEL //
-local ScreenGui = Instance.new("ScreenGui")
-ScreenGui.Name = "rexHub"
-ScreenGui.Parent = CoreGui
+-- HELPER
+local function Create(className, properties, children)
+    local inst = Instance.new(className)
+    for k,v in pairs(properties or {}) do inst[k] = v end
+    for _,c in pairs(children or {}) do c.Parent = inst end
+    return inst
+end
 
-local MainFrame = Instance.new("Frame")
-MainFrame.Parent = ScreenGui
-MainFrame.Size = UDim2.new(0, 120, 0, 80)
-MainFrame.Position = UDim2.new(0.5, -60, 0.5, -40)
-MainFrame.BackgroundColor3 = PANEL_COLOR
-MainFrame.BorderSizePixel = 0
+-- CLEANUP
+if CoreGui:FindFirstChild("rexHub") then
+    CoreGui.rexHub:Destroy()
+end
 
-local Corner = Instance.new("UICorner")
-Corner.CornerRadius = UDim.new(0, 12)
-Corner.Parent = MainFrame
+-- SCREEN GUI
+local ScreenGui = Create("ScreenGui", {Name = "rexHub", Parent = CoreGui})
 
--- DRAG LOGIC FOR PANEL
+-- MAIN PANEL
+local MainFrame = Create("Frame", {
+    Name = "MainFrame",
+    BackgroundColor3 = UI_CONFIG.MainColor,
+    Size = UDim2.new(0, 200, 0, 160),
+    Position = UDim2.new(0.5, -100, 0.5, -80),
+    BorderSizePixel = 0,
+    Parent = ScreenGui
+}, {
+    Create("UICorner", {CornerRadius = UI_CONFIG.CornerRadius}),
+    Create("UIStroke", {Color = UI_CONFIG.StrokeColor, Thickness = 2})
+})
+
+-- HEADER TEXT
+local Header = Create("TextLabel", {
+    BackgroundTransparency = 1,
+    Size = UDim2.new(1,0,0,25),
+    Position = UDim2.new(0,0,0,0),
+    Font = UI_CONFIG.Font,
+    Text = "rezxKurd",
+    TextColor3 = UI_CONFIG.TextColor,
+    TextSize = 18,
+    Parent = MainFrame
+})
+
+-- DRAGGING LOGIC
 local dragging, dragInput, dragStart, startPos
 local function update(input)
     local delta = input.Position - dragStart
@@ -36,7 +66,7 @@ local function update(input)
 end
 
 MainFrame.InputBegan:Connect(function(input)
-    if input.UserInputType == Enum.UserInputType.MouseButton1 then
+    if input.UserInputType == Enum.UserInputType.MouseButton1 or input.UserInputType == Enum.UserInputType.Touch then
         dragging = true
         dragStart = input.Position
         startPos = MainFrame.Position
@@ -47,7 +77,7 @@ MainFrame.InputBegan:Connect(function(input)
 end)
 
 MainFrame.InputChanged:Connect(function(input)
-    if input.UserInputType == Enum.UserInputType.MouseMovement then
+    if input.UserInputType == Enum.UserInputType.MouseMovement or input.UserInputType == Enum.UserInputType.Touch then
         dragInput = input
     end
 end)
@@ -56,93 +86,132 @@ UserInputService.InputChanged:Connect(function(input)
     if input == dragInput and dragging then update(input) end
 end)
 
--- // DESYNC BUTTON //
-local DesyncButton = Instance.new("TextButton")
-DesyncButton.Parent = MainFrame
-DesyncButton.Size = UDim2.new(1, -10, 1, -10)
-DesyncButton.Position = UDim2.new(0, 5, 0, 5)
-DesyncButton.BackgroundColor3 = BUTTON_COLOR
-DesyncButton.Font = Enum.Font.FredokaOne
-DesyncButton.TextSize = 16
-DesyncButton.TextColor3 = TEXT_COLOR
-DesyncButton.Text = "Desync"
-
-local ButtonCorner = Instance.new("UICorner")
-ButtonCorner.CornerRadius = UDim.new(0, 12)
-ButtonCorner.Parent = DesyncButton
-
-local ButtonStroke = Instance.new("UIStroke")
-ButtonStroke.Color = BUTTON_STROKE_COLOR
-ButtonStroke.Thickness = 3
-ButtonStroke.ApplyStrokeMode = Enum.ApplyStrokeMode.Border
-ButtonStroke.Parent = DesyncButton
-
--- // DESYNC LOGIC FROM YOUR SOURCE //
-local DESYNC_FLAGS = {
-    {"DFIntS2PhysicsSenderRate", "-30"},          
-    {"WorldStepMax", "-1"},                                 
-    {"DFIntTouchSenderMaxBandwidthBps", "-1"},            
-    {"DFFlagUseClientAuthoritativePhysicsForHumanoids", "True"},
-    {"DFFlagClientCharacterControllerPhysicsOverride", "True"},
-    {"DFIntSimBlockLargeLocalToolWeldManipulationsThreshold", "-1"},
-    {"DFIntClientPhysicsMaxSendRate", "2147483647"},
-    {"DFIntPhysicsSenderRate", "2147483647"},
-    {"DFIntClientPhysicsSendRate", "2147483647"},
-    {"DFIntNetworkSendRate", "2147483647"},
-    {"DFIntDebugSimPrimalNewtonIts", "0"},
-    {"DFIntDebugSimPrimalPreconditioner", "0"},
-    {"DFIntDebugSimPrimalPreconditionerMinExp", "0"},
-    {"DFIntDebugSimPrimalToleranceInv", "0"},
-    {"DFIntMinClientSimulationRadius", "2147000000"},
-    {"DFIntMaxClientSimulationRadius", "2147000000"},
-    {"DFIntClientSimulationRadiusBuffer", "2147000000"},
-    {"DFIntMinimalSimRadiusBuffer", "2147000000"},
-    {"DFIntSimVelocityCorrectionDampening", "0"},
-    {"DFIntSimPositionCorrectionDampening", "0"},
-    {"DFFlagDebugDisablePositionCorrection", "True"},
-    {"GameNetPVHeaderRotationalVelocityZeroCutoffExponent", "-2147483647"},
-    {"GameNetPVHeaderLinearVelocityZeroCutoffExponent", "-2147483647"},
-    {"DFIntUnstickForceAttackInTenths", "-20"},
-}
-
-local isMacroActive = false
-local loopConnection = nil
-
-local function spamFlags()
-    if setfflag then
-        for _, flagData in ipairs(DESYNC_FLAGS) do
-            pcall(function()
-                setfflag(flagData[1], flagData[2])
-            end)
-        end
-    end
+-- BUTTON CREATOR
+local function CreateButton(name, parent)
+    local btn = Create("TextButton", {
+        Name = name,
+        BackgroundColor3 = UI_CONFIG.ButtonColor,
+        Size = UDim2.new(0.9,0,0,50),
+        Position = UDim2.new(0.05,0,0,0),
+        Font = UI_CONFIG.Font,
+        Text = name,
+        TextColor3 = UI_CONFIG.ButtonTextColor,
+        TextSize = 16,
+        Parent = parent,
+        AutoButtonColor = true
+    }, {
+        Create("UICorner",{CornerRadius = UDim.new(0,8)}),
+        Create("UIStroke",{Color = UI_CONFIG.StrokeColor, Thickness = 1})
+    })
+    return btn
 end
 
-DesyncButton.MouseButton1Click:Connect(function()
-    isMacroActive = not isMacroActive
+-- CONTAINER FOR BUTTONS
+local ButtonsFrame = Create("Frame", {
+    BackgroundTransparency = 1,
+    Size = UDim2.new(1,0,1,-30),
+    Position = UDim2.new(0,0,0,30),
+    Parent = MainFrame
+})
+
+-- TELEPORT BUTTON
+local TeleportBtn = CreateButton("TELEPORT", ButtonsFrame)
+TeleportBtn.Position = UDim2.new(0.05,0,0,0)
+
+-- AUTO KICK BUTTON
+local AutoKickBtn = CreateButton("AUTO KICK", ButtonsFrame)
+AutoKickBtn.Position = UDim2.new(0.05,0,0,60)
+
+-- SOUND
+local clickSound = Instance.new("Sound")
+clickSound.SoundId = "rbxassetid://9118821472" -- simple click sound
+clickSound.Volume = 1
+clickSound.Parent = MainFrame
+
+-- TELEPORT FUNCTION
+local function teleportPlayer()
+    clickSound:Play()
+    local char = player.Character
+    if not char or not char:FindFirstChild("HumanoidRootPart") then return end
+    local hrp = char.HumanoidRootPart
+    local spawnPos = player.RespawnLocation or workspace:WaitForChild("SpawnLocation")
     
-    if isMacroActive then
-        -- Cambia texto a "Desync..." mientras ejecuta
-        DesyncButton.Text = "Desync..."
-        DesyncButton.BackgroundColor3 = BUTTON_ACTIVE_COLOR
-        ButtonStroke.Color = BUTTON_STROKE_ACTIVE
-        loopConnection = RunService.RenderStepped:Connect(spamFlags)
-    else
-        -- Vuelve a texto original
-        DesyncButton.Text = "Desync"
-        DesyncButton.BackgroundColor3 = BUTTON_COLOR
-        ButtonStroke.Color = BUTTON_STROKE_COLOR
-        if loopConnection then
-            loopConnection:Disconnect()
-            loopConnection = nil
+    TeleportBtn.Text = "teleporting..."
+    
+    local distance = (spawnPos.Position - hrp.Position).Magnitude
+    local speed = 500 -- studs per second, ultra rápido
+    local duration = distance/speed
+    local startPos = hrp.Position
+    local goalPos = spawnPos.Position
+    local t = 0
+    
+    local conn
+    conn = RunService.RenderStepped:Connect(function(dt)
+        t = t + dt
+        local alpha = math.clamp(t/duration,0,1)
+        hrp.CFrame = CFrame.new(startPos:Lerp(goalPos, alpha))
+        if alpha >= 1 then
+            conn:Disconnect()
+            TeleportBtn.Text = "TELEPORT"
         end
-        
-        if setfflag then
-            pcall(function()
-                for _, flagData in ipairs(DESYNC_FLAGS) do
-                    setfflag(flagData[1], "False")
-                end
-            end)
-        end
+    end)
+end
+
+-- AUTO KICK FUNCTION
+local function autoKickFunc()
+    clickSound:Play()
+    local keyword = "you stole"
+    local kickMessage = "You stole a pet by rezxKurd"
+    
+    local function hasKeyword(text)
+        if typeof(text) ~= "string" then return false end
+        return string.find(string.lower(text), keyword) ~= nil
     end
-end)
+
+    local function kickPlayer()
+        pcall(function()
+            player:Kick(kickMessage)
+        end)
+    end
+
+    local function scanGuiObjects(parent)
+        for _, obj in ipairs(parent:GetDescendants()) do
+            if obj:IsA("TextLabel") or obj:IsA("TextButton") or obj:IsA("TextBox") then
+                if hasKeyword(obj.Text) then
+                    kickPlayer()
+                    return true
+                end
+                obj:GetPropertyChangedSignal("Text"):Connect(function()
+                    if hasKeyword(obj.Text) then kickPlayer() end
+                end)
+            end
+        end
+        return false
+    end
+
+    local function setupGuiWatcher(gui)
+        gui.DescendantAdded:Connect(function(desc)
+            if desc:IsA("TextLabel") or desc:IsA("TextButton") or desc:IsA("TextBox") then
+                if hasKeyword(desc.Text) then kickPlayer() end
+                desc:GetPropertyChangedSignal("Text"):Connect(function()
+                    if hasKeyword(desc.Text) then kickPlayer() end
+                end)
+            end
+        end)
+    end
+
+    for _, gui in ipairs(player:WaitForChild("PlayerGui"):GetChildren()) do
+        setupGuiWatcher(gui)
+    end
+
+    player.PlayerGui.ChildAdded:Connect(function(gui)
+        setupGuiWatcher(gui)
+        scanGuiObjects(gui)
+    end)
+
+    scanGuiObjects(player.PlayerGui)
+end
+
+-- BUTTON CONNECTIONS
+TeleportBtn.MouseButton1Click:Connect(teleportPlayer)
+AutoKickBtn.MouseButton1Click:Connect(autoKickFunc)
