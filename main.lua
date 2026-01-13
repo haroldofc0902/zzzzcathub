@@ -1,4 +1,4 @@
---// RexHub Insta Stealer 1.0 - PANEL NUEVO DESDE CERO
+--// RexHub Insta Stealer 1.0 - SOLO CAMBIO DE NOMBRES Y SOURCES
 
 local Players = game:GetService("Players")
 local RunService = game:GetService("RunService")
@@ -13,73 +13,66 @@ gui.Name = "RexHubGUI"
 gui.ResetOnSpawn = false
 gui.Parent = player.PlayerGui
 
--- PANEL PRINCIPAL
+-- PANEL
 local frame = Instance.new("Frame")
 frame.Parent = gui
 frame.Position = UDim2.fromScale(0.35, 0.2)
 frame.Size = UDim2.fromScale(0.32, 0)
 frame.AutomaticSize = Enum.AutomaticSize.Y
-frame.BackgroundColor3 = Color3.fromRGB(25, 25, 25)
+frame.BackgroundColor3 = Color3.fromRGB(25,25,25)
 frame.BorderSizePixel = 0
 frame.Active = true
 frame.Draggable = true
-
-Instance.new("UICorner", frame).CornerRadius = UDim.new(0, 14)
+Instance.new("UICorner", frame).CornerRadius = UDim.new(0,14)
 
 -- HEADER
 local header = Instance.new("TextLabel")
 header.Parent = frame
-header.Size = UDim2.new(1, 0, 0, 40)
+header.Size = UDim2.new(1,0,0,40)
 header.BackgroundColor3 = Color3.fromRGB(240,240,240)
 header.Text = "RexHub Insta Stealer 1.0"
 header.Font = Enum.Font.GothamBold
 header.TextSize = 18
 header.TextColor3 = Color3.fromRGB(0,0,0)
 header.BorderSizePixel = 0
+Instance.new("UICorner", header).CornerRadius = UDim.new(0,12)
 
-local hc = Instance.new("UICorner", header)
-hc.CornerRadius = UDim.new(0, 12)
-
--- CONTENEDOR BOTONES
+-- CONTENEDOR
 local container = Instance.new("Frame")
 container.Parent = frame
-container.Size = UDim2.new(1, -16, 0, 0)
-container.Position = UDim2.new(0, 8, 0, 48)
+container.Size = UDim2.new(1,-16,0,0)
+container.Position = UDim2.new(0,8,0,48)
 container.AutomaticSize = Enum.AutomaticSize.Y
 container.BackgroundTransparency = 1
 
 local layout = Instance.new("UIListLayout")
 layout.Parent = container
-layout.Padding = UDim.new(0, 10)
-layout.HorizontalAlignment = Enum.HorizontalAlignment.Center
+layout.Padding = UDim.new(0,10)
 
--- FUNCIÓN BOTÓN (CUADRADO, GRANDE)
+-- BOTÓN BASE
 local function createButton(text)
 	local btn = Instance.new("TextButton")
 	btn.Parent = container
-	btn.Size = UDim2.new(1, 0, 0, 60)
+	btn.Size = UDim2.new(1,0,0,60)
 	btn.BackgroundColor3 = Color3.fromRGB(35,35,35)
 	btn.Text = text
 	btn.Font = Enum.Font.GothamBold
 	btn.TextSize = 20
-	btn.TextColor3 = Color3.fromRGB(255,255,255)
+	btn.TextColor3 = Color3.new(1,1,1)
 	btn.BorderSizePixel = 0
-	btn.AutoButtonColor = true
-
-	Instance.new("UICorner", btn).CornerRadius = UDim.new(0, 12)
+	Instance.new("UICorner", btn).CornerRadius = UDim.new(0,12)
 	return btn
 end
 
--- === BOTONES (MISMO ORDEN QUE LA FOTO) ===
+-- === BOTONES (MISMO ORDEN, SOLO NOMBRES CAMBIADOS) ===
 local tpBtn     = createButton("TP to base")
-local desyncBtn = createButton("Desync (OFF)")
-local speedBtn  = createButton("Speed (OFF)")
+local grabBtn   = createButton("AUTO GRAB")
+local kickBtn   = createButton("AUTO KICK")
 
--- === FUNCIONES ===
+-- ================= FUNCIONES =================
 
--- TP VOLANDO RÁPIDO (NO TELEPORT INSTANTE)
+-- TP VOLANDO RÁPIDO
 local spawnCFrame = hrp.CFrame
-
 player.CharacterAdded:Connect(function(c)
 	char = c
 	hrp = c:WaitForChild("HumanoidRootPart")
@@ -107,19 +100,44 @@ tpBtn.MouseButton1Click:Connect(function()
 	end)
 end)
 
--- DESYNC (VISUAL)
-local desync = false
-desyncBtn.MouseButton1Click:Connect(function()
-	desync = not desync
-	desyncBtn.Text = desync and "Desync (ON)" or "Desync (OFF)"
+-- AUTO GRAB (SOURCE ORIGINAL)
+local grabOn = false
+grabBtn.MouseButton1Click:Connect(function()
+	grabOn = not grabOn
+	grabBtn.Text = grabOn and "AUTO GRAB (ON)" or "AUTO GRAB"
 end)
 
--- SPEED
-local speedOn = false
-speedBtn.MouseButton1Click:Connect(function()
-	speedOn = not speedOn
-	humanoid.WalkSpeed = speedOn and 36 or 16
-	speedBtn.Text = speedOn and "Speed (ON)" or "Speed (OFF)"
+RunService.Heartbeat:Connect(function()
+	if grabOn then
+		for _,v in pairs(workspace:GetDescendants()) do
+			if v:IsA("ProximityPrompt") then
+				local t = string.lower(v.ActionText or "")
+				if t:find("robar") or t:find("steal") then
+					pcall(function()
+						v.HoldDuration = 0
+						v:InputHoldBegin()
+					end)
+				end
+			end
+		end
+	end
 end)
 
-print("✅ RexHub Insta Stealer 1.0 cargado | 3 botones | sin espacio invisible")
+-- AUTO KICK
+local autoKick = false
+kickBtn.MouseButton1Click:Connect(function()
+	autoKick = not autoKick
+	kickBtn.Text = autoKick and "AUTO KICK (ON)" or "AUTO KICK"
+end)
+
+player.PlayerGui.DescendantAdded:Connect(function(obj)
+	if autoKick and (obj:IsA("TextLabel") or obj:IsA("TextButton")) then
+		obj:GetPropertyChangedSignal("Text"):Connect(function()
+			if string.find(string.lower(obj.Text),"you stole") then
+				player:Kick("Auto Kick by RexHub")
+			end
+		end)
+	end
+end)
+
+print("✅ SOLO nombres + source cambiados. Panel intacto.")
