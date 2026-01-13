@@ -1,4 +1,4 @@
---// RexHub Insta Stealer 1.0 - SOLO CAMBIO DE NOMBRES Y SOURCES
+--// RexHub Insta Stealer 1.0 + Minimize Button
 
 local Players = game:GetService("Players")
 local RunService = game:GetService("RunService")
@@ -8,10 +8,9 @@ local hrp = char:WaitForChild("HumanoidRootPart")
 local humanoid = char:WaitForChild("Humanoid")
 
 -- GUI
-local gui = Instance.new("ScreenGui")
+local gui = Instance.new("ScreenGui", player.PlayerGui)
 gui.Name = "RexHubGUI"
 gui.ResetOnSpawn = false
-gui.Parent = player.PlayerGui
 
 -- PANEL
 local frame = Instance.new("Frame")
@@ -26,33 +25,47 @@ frame.Draggable = true
 Instance.new("UICorner", frame).CornerRadius = UDim.new(0,14)
 
 -- HEADER
-local header = Instance.new("TextLabel")
-header.Parent = frame
+local header = Instance.new("Frame", frame)
 header.Size = UDim2.new(1,0,0,40)
 header.BackgroundColor3 = Color3.fromRGB(240,240,240)
-header.Text = "RexHub Insta Stealer 1.0"
-header.Font = Enum.Font.GothamBold
-header.TextSize = 18
-header.TextColor3 = Color3.fromRGB(0,0,0)
 header.BorderSizePixel = 0
 Instance.new("UICorner", header).CornerRadius = UDim.new(0,12)
 
+local title = Instance.new("TextLabel", header)
+title.Size = UDim2.new(1,-40,1,0)
+title.Position = UDim2.new(0,10,0,0)
+title.BackgroundTransparency = 1
+title.Text = "RexHub Insta Stealer 1.0"
+title.Font = Enum.Font.GothamBold
+title.TextSize = 18
+title.TextColor3 = Color3.fromRGB(0,0,0)
+title.TextXAlignment = Enum.TextXAlignment.Left
+
+-- BOTÓN MINIMIZAR
+local toggleBtn = Instance.new("TextButton", header)
+toggleBtn.Size = UDim2.new(0,30,0,30)
+toggleBtn.Position = UDim2.new(1,-35,0.5,-15)
+toggleBtn.Text = "-"
+toggleBtn.Font = Enum.Font.GothamBold
+toggleBtn.TextSize = 22
+toggleBtn.BackgroundColor3 = Color3.fromRGB(220,220,220)
+toggleBtn.TextColor3 = Color3.fromRGB(0,0,0)
+toggleBtn.BorderSizePixel = 0
+Instance.new("UICorner", toggleBtn).CornerRadius = UDim.new(1,0)
+
 -- CONTENEDOR
-local container = Instance.new("Frame")
-container.Parent = frame
+local container = Instance.new("Frame", frame)
 container.Size = UDim2.new(1,-16,0,0)
 container.Position = UDim2.new(0,8,0,48)
 container.AutomaticSize = Enum.AutomaticSize.Y
 container.BackgroundTransparency = 1
 
-local layout = Instance.new("UIListLayout")
-layout.Parent = container
+local layout = Instance.new("UIListLayout", container)
 layout.Padding = UDim.new(0,10)
 
 -- BOTÓN BASE
 local function createButton(text)
-	local btn = Instance.new("TextButton")
-	btn.Parent = container
+	local btn = Instance.new("TextButton", container)
 	btn.Size = UDim2.new(1,0,0,60)
 	btn.BackgroundColor3 = Color3.fromRGB(35,35,35)
 	btn.Text = text
@@ -64,14 +77,20 @@ local function createButton(text)
 	return btn
 end
 
--- === BOTONES (MISMO ORDEN, SOLO NOMBRES CAMBIADOS) ===
-local tpBtn     = createButton("TP to base")
-local grabBtn   = createButton("AUTO GRAB")
-local kickBtn   = createButton("AUTO KICK")
+-- BOTONES
+local tpBtn   = createButton("TP to base")
+local grabBtn = createButton("AUTO GRAB")
+local kickBtn = createButton("AUTO KICK")
 
--- ================= FUNCIONES =================
+-- ====== MINIMIZAR / RESTAURAR ======
+local minimized = false
+toggleBtn.MouseButton1Click:Connect(function()
+	minimized = not minimized
+	container.Visible = not minimized
+	toggleBtn.Text = minimized and "+" or "-"
+end)
 
--- TP VOLANDO RÁPIDO
+-- ====== TP VOLANDO ======
 local spawnCFrame = hrp.CFrame
 player.CharacterAdded:Connect(function(c)
 	char = c
@@ -100,7 +119,7 @@ tpBtn.MouseButton1Click:Connect(function()
 	end)
 end)
 
--- AUTO GRAB (SOURCE ORIGINAL)
+-- ====== AUTO GRAB ======
 local grabOn = false
 grabBtn.MouseButton1Click:Connect(function()
 	grabOn = not grabOn
@@ -123,7 +142,7 @@ RunService.Heartbeat:Connect(function()
 	end
 end)
 
--- AUTO KICK
+-- ====== AUTO KICK ======
 local autoKick = false
 kickBtn.MouseButton1Click:Connect(function()
 	autoKick = not autoKick
@@ -140,4 +159,4 @@ player.PlayerGui.DescendantAdded:Connect(function(obj)
 	end
 end)
 
-print("✅ SOLO nombres + source cambiados. Panel intacto.")
+print("✅ RexHub listo con minimizador (- / +)")
