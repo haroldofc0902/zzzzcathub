@@ -1,4 +1,4 @@
---// RexHub Insta Stealer 1.0 + Minimize Button (WITH SOUND)
+--// RexHub Insta Stealer 1.0 + Minimize Button
 
 local Players = game:GetService("Players")
 local RunService = game:GetService("RunService")
@@ -11,14 +11,6 @@ local humanoid = char:WaitForChild("Humanoid")
 local gui = Instance.new("ScreenGui", player.PlayerGui)
 gui.Name = "RexHubGUI"
 gui.ResetOnSpawn = false
-
--- 🔊 SONIDO CLICK
-local clickSound = Instance.new("Sound", gui)
-clickSound.SoundId = "rbxassetid://12221967"
-clickSound.Volume = 1
-local function click()
-	clickSound:Play()
-end
 
 -- PANEL
 local frame = Instance.new("Frame")
@@ -93,14 +85,14 @@ local kickBtn = createButton("AUTO KICK")
 -- ====== MINIMIZAR / RESTAURAR ======
 local minimized = false
 toggleBtn.MouseButton1Click:Connect(function()
-	click()
 	minimized = not minimized
 	container.Visible = not minimized
 	toggleBtn.Text = minimized and "+" or "-"
 end)
 
--- ====== TP VOLANDO ======
+-- ====== TP VOLANDO CON ANIMACIÓN DE CAÍDA ======
 local spawnCFrame = hrp.CFrame
+
 player.CharacterAdded:Connect(function(c)
 	char = c
 	hrp = c:WaitForChild("HumanoidRootPart")
@@ -109,8 +101,6 @@ player.CharacterAdded:Connect(function(c)
 end)
 
 tpBtn.MouseButton1Click:Connect(function()
-	click()
-
 	local startPos = hrp.Position
 	local endPos = spawnCFrame.Position
 	local dir = (endPos - startPos).Unit
@@ -118,12 +108,20 @@ tpBtn.MouseButton1Click:Connect(function()
 	local speed = 200
 	local moved = 0
 
+	-- fuerza animación de caída
+	humanoid:ChangeState(Enum.HumanoidStateType.Freefall)
+
 	local conn
 	conn = RunService.Heartbeat:Connect(function(dt)
-		moved += speed * dt
+		humanoid:ChangeState(Enum.HumanoidStateType.Freefall)
+
+		local step = speed * dt
+		moved += step
 		hrp.CFrame = CFrame.new(startPos + dir * moved, endPos)
+
 		if moved >= dist then
 			hrp.CFrame = spawnCFrame
+			humanoid:ChangeState(Enum.HumanoidStateType.Landed)
 			conn:Disconnect()
 		end
 	end)
@@ -132,7 +130,6 @@ end)
 -- ====== AUTO GRAB ======
 local grabOn = false
 grabBtn.MouseButton1Click:Connect(function()
-	click()
 	grabOn = not grabOn
 	grabBtn.Text = grabOn and "AUTO GRAB (ON)" or "AUTO GRAB"
 end)
@@ -156,7 +153,6 @@ end)
 -- ====== AUTO KICK ======
 local autoKick = false
 kickBtn.MouseButton1Click:Connect(function()
-	click()
 	autoKick = not autoKick
 	kickBtn.Text = autoKick and "AUTO KICK (ON)" or "AUTO KICK"
 end)
@@ -171,4 +167,4 @@ player.PlayerGui.DescendantAdded:Connect(function(obj)
 	end
 end)
 
-print("✅ RexHub listo con sonido en todos los botones")
+print("✅ RexHub listo – TP con animación de caída")
