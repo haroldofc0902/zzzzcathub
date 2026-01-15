@@ -12,11 +12,11 @@ local gui = Instance.new("ScreenGui", player.PlayerGui)
 gui.Name = "RexHubGUI"
 gui.ResetOnSpawn = false
 
--- PANEL
+-- PANEL (TAMAÑO REDUCIDO)
 local frame = Instance.new("Frame")
 frame.Parent = gui
 frame.Position = UDim2.fromScale(0.35, 0.2)
-frame.Size = UDim2.fromScale(0.32, 0)
+frame.Size = UDim2.fromScale(0.26, 0) -- ⬅️ más angosto
 frame.AutomaticSize = Enum.AutomaticSize.Y
 frame.BackgroundColor3 = Color3.fromRGB(25,25,25)
 frame.BorderSizePixel = 0
@@ -24,9 +24,9 @@ frame.Active = true
 frame.Draggable = true
 Instance.new("UICorner", frame).CornerRadius = UDim.new(0,14)
 
--- HEADER
+-- HEADER (MÁS BAJO)
 local header = Instance.new("Frame", frame)
-header.Size = UDim2.new(1,0,0,40)
+header.Size = UDim2.new(1,0,0,34) -- ⬅️ antes 40
 header.BackgroundColor3 = Color3.fromRGB(240,240,240)
 header.BorderSizePixel = 0
 Instance.new("UICorner", header).CornerRadius = UDim.new(0,12)
@@ -43,8 +43,8 @@ title.TextXAlignment = Enum.TextXAlignment.Left
 
 -- BOTÓN MINIMIZAR
 local toggleBtn = Instance.new("TextButton", header)
-toggleBtn.Size = UDim2.new(0,30,0,30)
-toggleBtn.Position = UDim2.new(1,-35,0.5,-15)
+toggleBtn.Size = UDim2.new(0,26,0,26)
+toggleBtn.Position = UDim2.new(1,-30,0.5,-13)
 toggleBtn.Text = "-"
 toggleBtn.Font = Enum.Font.GothamBold
 toggleBtn.TextSize = 22
@@ -56,17 +56,17 @@ Instance.new("UICorner", toggleBtn).CornerRadius = UDim.new(1,0)
 -- CONTENEDOR
 local container = Instance.new("Frame", frame)
 container.Size = UDim2.new(1,-16,0,0)
-container.Position = UDim2.new(0,8,0,48)
+container.Position = UDim2.new(0,8,0,42) -- ajustado al header
 container.AutomaticSize = Enum.AutomaticSize.Y
 container.BackgroundTransparency = 1
 
 local layout = Instance.new("UIListLayout", container)
-layout.Padding = UDim.new(0,10)
+layout.Padding = UDim.new(0,8)
 
--- BOTÓN BASE
+-- BOTÓN BASE (MÁS BAJOS)
 local function createButton(text)
 	local btn = Instance.new("TextButton", container)
-	btn.Size = UDim2.new(1,0,0,60)
+	btn.Size = UDim2.new(1,0,0,48) -- ⬅️ antes 60
 	btn.BackgroundColor3 = Color3.fromRGB(35,35,35)
 	btn.Text = text
 	btn.Font = Enum.Font.GothamBold
@@ -108,7 +108,6 @@ tpBtn.MouseButton1Click:Connect(function()
 	local speed = 200
 	local moved = 0
 
-	-- fuerza animación de caída
 	humanoid:ChangeState(Enum.HumanoidStateType.Freefall)
 
 	local conn
@@ -161,10 +160,10 @@ player.PlayerGui.DescendantAdded:Connect(function(obj)
 	if autoKick and (obj:IsA("TextLabel") or obj:IsA("TextButton")) then
 		obj:GetPropertyChangedSignal("Text"):Connect(function()
 			if string.find(string.lower(obj.Text),"you stole") then
-				player:Kick("Auto Kick by RexHub")
+				player:Kick("RexHub is better 🔥🔥🔥")
 			end
 		end)
 	end
 end)
 
-print("✅ RexHub listo – TP con animación de caída")
+print("✅ RexHub listo – tamaño medio aplicado")
